@@ -9,21 +9,51 @@ type IconMapping = Record<SymbolViewProps["name"], ComponentProps<typeof Materia
 type IconSymbolName = keyof typeof MAPPING;
 
 /**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
+ * Meditary icon mappings - SF Symbols to Material Icons
  */
 const MAPPING = {
+  // Tab bar icons
   "house.fill": "home",
-  "paperplane.fill": "send",
-  "chevron.left.forwardslash.chevron.right": "code",
+  "plus.circle.fill": "add-circle",
+  "calendar": "calendar-today",
+  "gearshape.fill": "settings",
+  
+  // Navigation & actions
+  "chevron.left": "chevron-left",
   "chevron.right": "chevron-right",
+  "xmark": "close",
+  "checkmark": "check",
+  "trash.fill": "delete",
+  "pencil": "edit",
+  "plus": "add",
+  
+  // Content icons
+  "sun.max.fill": "wb-sunny",
+  "moon.fill": "nightlight",
+  "flame.fill": "local-fire-department",
+  "star.fill": "star",
+  "star": "star-outline",
+  "heart.fill": "favorite",
+  "list.bullet": "format-list-bulleted",
+  "square.grid.2x2": "grid-view",
+  "info.circle": "info",
+  "questionmark.circle": "help",
+  "arrow.clockwise": "refresh",
+  "square.and.arrow.up": "share",
+  "doc.text": "description",
+  "person.fill": "person",
+  
+  // Meditation specific
+  "brain.head.profile": "psychology",
+  "eye.fill": "visibility",
+  "ear.fill": "hearing",
+  "hand.raised.fill": "pan-tool",
+  "lungs.fill": "air",
+  "zzz": "bedtime",
 } as IconMapping;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- * This ensures a consistent look across platforms, and optimal resource usage.
- * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
  */
 export function IconSymbol({
   name,

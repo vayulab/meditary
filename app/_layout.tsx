@@ -17,10 +17,37 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/manus-runtime";
+import { LanguageProvider } from "@/contexts/language-context";
+import { DataProvider } from "@/contexts/data-context";
+import { Colors } from "@/constants/theme";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
-// Web iframe previewer cannot infer safe-area; default to zero until container sends metrics.
+
+// Custom Meditary themes
+const MeditaryLightTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: Colors.light.tint,
+    background: Colors.light.background,
+    card: Colors.light.surface,
+    text: Colors.light.text,
+    border: Colors.light.border,
+  },
+};
+
+const MeditaryDarkTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: Colors.dark.tint,
+    background: Colors.dark.background,
+    card: Colors.dark.surface,
+    text: Colors.dark.text,
+    border: Colors.dark.border,
+  },
+};
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -56,9 +83,7 @@ export default function RootLayout() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Disable automatic refetching on window focus for mobile
             refetchOnWindowFocus: false,
-            // Retry failed requests once
             retry: 1,
           },
         },
@@ -75,14 +100,38 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: "modal", title: "Modal" }} />
-              <Stack.Screen name="oauth/callback" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
+          <LanguageProvider>
+            <DataProvider>
+              <ThemeProvider value={colorScheme === "dark" ? MeditaryDarkTheme : MeditaryLightTheme}>
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen 
+                    name="new-entry" 
+                    options={{ 
+                      presentation: "modal",
+                      headerShown: false,
+                    }} 
+                  />
+                  <Stack.Screen 
+                    name="entry-detail" 
+                    options={{ 
+                      presentation: "card",
+                      headerShown: false,
+                    }} 
+                  />
+                  <Stack.Screen 
+                    name="customize-questions" 
+                    options={{ 
+                      presentation: "card",
+                      headerShown: false,
+                    }} 
+                  />
+                  <Stack.Screen name="oauth/callback" options={{ headerShown: false }} />
+                </Stack>
+                <StatusBar style="auto" />
+              </ThemeProvider>
+            </DataProvider>
+          </LanguageProvider>
         </QueryClientProvider>
       </trpc.Provider>
     </GestureHandlerRootView>

@@ -16,7 +16,7 @@ const env = {
   appSlug: 'meditary',
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: '',
+  logoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/100643026/iAqVguiLrEkEtCBL.png',
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
@@ -75,9 +75,9 @@ const config: ExpoConfig = {
         image: "./assets/images/splash-icon.png",
         imageWidth: 200,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#F8F9FC",
         dark: {
-          backgroundColor: "#000000",
+          backgroundColor: "#0F0F1A",
         },
       },
     ],
