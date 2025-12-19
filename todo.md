@@ -67,3 +67,14 @@
 - [x] Create comprehensive use case documentation
 - [x] Develop complete test cases
 - [x] Validate app functionality across all scenarios
+
+## Bug Fixes (v1.4)
+- [x] Fix splash screen - white background with white text (unreadable)
+- [x] Fix meditation entry date - stuck on 18/12, should use current date
+- [x] Fix total minutes calculation in progress screen
+- [x] Fix app version number in settings
+- [x] Fix drag-to-reorder functionality in customize questions
+
+## New Features (v1.4)
+- [x] Add ambient sounds to timer (rain, forest, ocean, etc.) with selection option
+- [x] Remove export data functionality from settings

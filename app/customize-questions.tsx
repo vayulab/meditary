@@ -11,6 +11,8 @@ import {
   Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -27,7 +29,7 @@ export default function CustomizeQuestionsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
   const { t, language } = useLanguage();
-  const { questions, addQuestion, updateQuestion, deleteQuestion, resetQuestionsToDefault } = useData();
+  const { questions, addQuestion, updateQuestion, deleteQuestion, reorderQuestions, resetQuestionsToDefault } = useData();
 
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -106,11 +108,12 @@ export default function CustomizeQuestionsScreen() {
   const handleResetToDefault = () => {
     Alert.alert(
       t("customizeReset"),
-      t("customizeResetConfirm"),
+      language === "pt" ? "Tem certeza que deseja restaurar as perguntas padrão?" : "Are you sure you want to reset to default questions?",
       [
         { text: t("cancel"), style: "cancel" },
         {
-          text: t("yes"),
+          text: t("reset"),
+          style: "destructive",
           onPress: async () => {
             await resetQuestionsToDefault();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -120,190 +123,224 @@ export default function CustomizeQuestionsScreen() {
     );
   };
 
-  const getTypeLabel = (type: string) => {
+  const handleDragEnd = async ({ data }: { data: Question[] }) => {
+    const reordered = data.map((q, index) => ({ ...q, order: index }));
+    await reorderQuestions(reordered);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const getTypeLabel = (type: "rating" | "text" | "yesno") => {
     switch (type) {
-      case "rating": return t("questionEditorTypeRating");
-      case "yesno": return language === "pt" ? "Sim/Não" : "Yes/No";
-      default: return t("questionEditorTypeText");
+      case "rating":
+        return language === "pt" ? "Avaliação (1-5)" : "Rating (1-5)";
+      case "text":
+        return language === "pt" ? "Texto" : "Text";
+      case "yesno":
+        return language === "pt" ? "Sim/Não" : "Yes/No";
     }
   };
 
-  return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View 
-        style={[
-          styles.header, 
-          { 
-            paddingTop: Math.max(insets.top, 20) + Spacing.sm,
-            backgroundColor: colors.surface,
-            borderBottomColor: colors.border,
-          }
-        ]}
-      >
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <IconSymbol name="chevron.left" size={24} color={colors.tint} />
-          <ThemedText style={[styles.backText, { color: colors.tint }]}>{t("back")}</ThemedText>
-        </Pressable>
-        <Pressable onPress={handleResetToDefault} style={styles.resetButton}>
-          <IconSymbol name="arrow.clockwise" size={20} color={colors.textSecondary} />
-        </Pressable>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <ThemedText style={styles.title}>{t("customizeTitle")}</ThemedText>
-        <ThemedText style={[styles.hint, { color: colors.textSecondary }]}>
-          {t("customizeDragHint")}
-        </ThemedText>
-
-        {/* Questions List */}
-        <View style={styles.questionsList}>
-          {sortedQuestions.map((question, index) => (
-            <Pressable
-              key={question.id}
-              onPress={() => handleEditQuestion(question)}
-              onLongPress={() => handleDeleteQuestion(question)}
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<Question>) => {
+    const index = sortedQuestions.findIndex(q => q.id === item.id);
+    
+    return (
+      <ScaleDecorator>
+        <Pressable
+          onLongPress={drag}
+          disabled={isActive}
+          style={{ opacity: isActive ? 0.8 : 1 }}
+        >
+          <ThemedView style={[styles.questionItem, { backgroundColor: colors.surface }]}>
+            <View style={styles.dragHandle}>
+              <IconSymbol name="line.3.horizontal" size={20} color={colors.textSecondary} />
+            </View>
+            <Pressable 
+              onPress={() => handleEditQuestion(item)}
+              style={styles.questionContent}
             >
-              <ThemedView style={[styles.questionItem, { backgroundColor: colors.surface }]}>
-                <View style={styles.questionContent}>
-                  <ThemedText style={[styles.questionNumber, { color: colors.textSecondary }]}>
-                    {index + 1}
-                  </ThemedText>
-                  <View style={styles.questionTextContainer}>
-                    <ThemedText style={styles.questionText} numberOfLines={2}>
-                      {language === "pt" ? question.textPt : question.textEn}
-                    </ThemedText>
-                    <ThemedText style={[styles.questionType, { color: colors.textSecondary }]}>
-                      {getTypeLabel(question.type)}
-                    </ThemedText>
-                  </View>
-                </View>
-                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-              </ThemedView>
+              <ThemedText style={[styles.questionNumber, { color: colors.textSecondary }]}>
+                {index + 1}
+              </ThemedText>
+              <View style={styles.questionTextContainer}>
+                <ThemedText style={styles.questionText} numberOfLines={2}>
+                  {language === "pt" ? item.textPt : item.textEn}
+                </ThemedText>
+                <ThemedText style={[styles.questionType, { color: colors.textSecondary }]}>
+                  {getTypeLabel(item.type)}
+                </ThemedText>
+              </View>
             </Pressable>
-          ))}
+            <Pressable onPress={() => handleDeleteQuestion(item)} style={styles.deleteButton}>
+              <IconSymbol name="trash.fill" size={20} color="#FF3B30" />
+            </Pressable>
+          </ThemedView>
+        </Pressable>
+      </ScaleDecorator>
+    );
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* Header */}
+        <View 
+          style={[
+            styles.header, 
+            { 
+              paddingTop: Math.max(insets.top, 20) + Spacing.md,
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            }
+          ]}
+        >
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <IconSymbol name="chevron.left" size={24} color={colors.text} />
+          </Pressable>
+          <ThemedText style={styles.headerTitle}>{t("customizeTitle")}</ThemedText>
+          <Pressable onPress={handleResetToDefault} style={styles.resetButton}>
+            <ThemedText style={[styles.resetText, { color: colors.tint }]}>
+              {t("reset")}
+            </ThemedText>
+          </Pressable>
         </View>
 
-        {/* Add Question Button */}
-        <Pressable
-          style={[styles.addButton, { borderColor: colors.tint }]}
-          onPress={handleAddQuestion}
-        >
-          <IconSymbol name="plus" size={24} color={colors.tint} />
-          <ThemedText style={[styles.addButtonText, { color: colors.tint }]}>
-            {t("customizeAdd")}
+        <View style={styles.content}>
+          <ThemedText style={[styles.hint, { color: colors.textSecondary }]}>
+            {language === "pt" 
+              ? "Pressione e segure para arrastar e reordenar" 
+              : "Press and hold to drag and reorder"}
           </ThemedText>
-        </Pressable>
-      </ScrollView>
 
-      {/* Edit Modal */}
-      <Modal
-        visible={isModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setIsModalVisible(false)}
-      >
-        <ThemedView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
-          <View 
-            style={[
-              styles.modalHeader, 
-              { 
-                paddingTop: Math.max(insets.top, 20) + Spacing.sm,
-                backgroundColor: colors.surface,
-                borderBottomColor: colors.border,
-              }
-            ]}
+          {/* Draggable Questions List */}
+          <DraggableFlatList
+            data={sortedQuestions}
+            onDragEnd={handleDragEnd}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+          />
+
+          {/* Add Question Button */}
+          <Pressable
+            style={[styles.addButton, { borderColor: colors.tint }]}
+            onPress={handleAddQuestion}
           >
-            <Pressable onPress={() => setIsModalVisible(false)} style={styles.modalCloseButton}>
-              <ThemedText style={[styles.modalCloseText, { color: colors.textSecondary }]}>
-                {t("cancel")}
-              </ThemedText>
-            </Pressable>
-            <ThemedText style={styles.modalTitle}>
-              {editingQuestion ? t("questionEditorTitle") : t("questionEditorNew")}
+            <IconSymbol name="plus" size={24} color={colors.tint} />
+            <ThemedText style={[styles.addButtonText, { color: colors.tint }]}>
+              {t("customizeAdd")}
             </ThemedText>
-            <Pressable onPress={handleSaveQuestion} style={styles.modalSaveButton}>
-              <ThemedText style={[styles.modalSaveText, { color: colors.tint }]}>
-                {t("save")}
+          </Pressable>
+        </View>
+
+        {/* Edit Modal */}
+        <Modal
+          visible={isModalVisible}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setIsModalVisible(false)}
+        >
+          <ThemedView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+            <View 
+              style={[
+                styles.modalHeader, 
+                { 
+                  paddingTop: Math.max(insets.top, 20) + Spacing.sm,
+                  backgroundColor: colors.surface,
+                  borderBottomColor: colors.border,
+                }
+              ]}
+            >
+              <Pressable onPress={() => setIsModalVisible(false)} style={styles.modalCloseButton}>
+                <ThemedText style={[styles.modalCloseText, { color: colors.textSecondary }]}>
+                  {t("cancel")}
+                </ThemedText>
+              </Pressable>
+              <ThemedText style={styles.modalTitle}>
+                {editingQuestion ? t("questionEditorTitle") : t("questionEditorNew")}
               </ThemedText>
-            </Pressable>
-          </View>
-
-          <ScrollView style={styles.modalContent}>
-            {/* English Text */}
-            <View style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>English</ThemedText>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                value={editTextEn}
-                onChangeText={setEditTextEn}
-                placeholder="Question in English"
-                placeholderTextColor={colors.textDisabled}
-              />
+              <Pressable onPress={handleSaveQuestion} style={styles.modalSaveButton}>
+                <ThemedText style={[styles.modalSaveText, { color: colors.tint }]}>
+                  {t("save")}
+                </ThemedText>
+              </Pressable>
             </View>
 
-            {/* Portuguese Text */}
-            <View style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>Português</ThemedText>
-              <TextInput
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    color: colors.text,
-                  },
-                ]}
-                value={editTextPt}
-                onChangeText={setEditTextPt}
-                placeholder="Pergunta em Português"
-                placeholderTextColor={colors.textDisabled}
-              />
-            </View>
-
-            {/* Type Selection */}
-            <View style={styles.inputGroup}>
-              <ThemedText style={styles.inputLabel}>{t("questionEditorType")}</ThemedText>
-              <View style={styles.typeOptions}>
-                {(["text", "rating", "yesno"] as const).map((type) => (
-                  <Pressable
-                    key={type}
-                    style={[
-                      styles.typeOption,
-                      {
-                        backgroundColor: editType === type ? colors.tint : colors.surface,
-                        borderColor: editType === type ? colors.tint : colors.border,
-                      },
-                    ]}
-                    onPress={() => setEditType(type)}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.typeOptionText,
-                        { color: editType === type ? "#FFFFFF" : colors.text },
-                      ]}
-                    >
-                      {getTypeLabel(type)}
-                    </ThemedText>
-                  </Pressable>
-                ))}
+            <ScrollView style={styles.modalContent}>
+              {/* English Text */}
+              <View style={styles.inputGroup}>
+                <ThemedText style={styles.inputLabel}>English</ThemedText>
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      color: colors.text,
+                    },
+                  ]}
+                  value={editTextEn}
+                  onChangeText={setEditTextEn}
+                  placeholder="Question in English"
+                  placeholderTextColor={colors.textSecondary}
+                  multiline
+                />
               </View>
-            </View>
-          </ScrollView>
-        </ThemedView>
-      </Modal>
-    </ThemedView>
+
+              {/* Portuguese Text */}
+              <View style={styles.inputGroup}>
+                <ThemedText style={styles.inputLabel}>Português</ThemedText>
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      color: colors.text,
+                    },
+                  ]}
+                  value={editTextPt}
+                  onChangeText={setEditTextPt}
+                  placeholder="Pergunta em Português"
+                  placeholderTextColor={colors.textSecondary}
+                  multiline
+                />
+              </View>
+
+              {/* Question Type */}
+              <View style={styles.inputGroup}>
+                <ThemedText style={styles.inputLabel}>
+                  {language === "pt" ? "Tipo de Resposta" : "Answer Type"}
+                </ThemedText>
+                <View style={styles.typeButtons}>
+                  {(["rating", "text", "yesno"] as const).map((type) => (
+                    <Pressable
+                      key={type}
+                      style={[
+                        styles.typeButton,
+                        {
+                          backgroundColor: editType === type ? colors.tint : colors.surface,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                      onPress={() => setEditType(type)}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.typeButtonText,
+                          { color: editType === type ? "#FFFFFF" : colors.text },
+                        ]}
+                      >
+                        {getTypeLabel(type)}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+          </ThemedView>
+        </Modal>
+      </ThemedView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -320,80 +357,83 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: -Spacing.sm,
+    padding: Spacing.xs,
+    width: 80,
   },
-  backText: {
-    fontSize: 16,
-    marginLeft: Spacing.xs,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    flex: 1,
+    textAlign: "center",
   },
   resetButton: {
-    padding: Spacing.sm,
+    padding: Spacing.xs,
+    width: 80,
+    alignItems: "flex-end",
   },
-  scrollView: {
+  resetText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xxl,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: Spacing.xs,
+    paddingHorizontal: Spacing.md,
   },
   hint: {
     fontSize: 14,
-    marginBottom: Spacing.lg,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    textAlign: "center",
   },
-  questionsList: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
+  listContent: {
+    paddingBottom: Spacing.xl,
   },
   questionItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  dragHandle: {
+    padding: Spacing.xs,
   },
   questionContent: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   questionNumber: {
     fontSize: 16,
     fontWeight: "600",
-    width: 24,
+    width: 30,
   },
   questionTextContainer: {
     flex: 1,
   },
   questionText: {
     fontSize: 16,
-    lineHeight: 22,
+    marginBottom: 4,
   },
   questionType: {
     fontSize: 12,
-    marginTop: 2,
+  },
+  deleteButton: {
+    padding: Spacing.xs,
   },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
     borderStyle: "dashed",
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
+    gap: Spacing.sm,
   },
   addButtonText: {
     fontSize: 16,
@@ -411,30 +451,36 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   modalCloseButton: {
-    padding: Spacing.sm,
+    padding: Spacing.xs,
+    width: 80,
   },
   modalCloseText: {
     fontSize: 16,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "bold",
+    flex: 1,
+    textAlign: "center",
   },
   modalSaveButton: {
-    padding: Spacing.sm,
+    padding: Spacing.xs,
+    width: 80,
+    alignItems: "flex-end",
   },
   modalSaveText: {
     fontSize: 16,
     fontWeight: "600",
   },
   modalContent: {
+    flex: 1,
     padding: Spacing.md,
   },
   inputGroup: {
     marginBottom: Spacing.lg,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     marginBottom: Spacing.sm,
   },
@@ -443,20 +489,22 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: "top",
   },
-  typeOptions: {
+  typeButtons: {
     flexDirection: "row",
     gap: Spacing.sm,
   },
-  typeOption: {
+  typeButton: {
     flex: 1,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     alignItems: "center",
   },
-  typeOptionText: {
+  typeButtonText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
   },
 });

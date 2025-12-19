@@ -27,9 +27,16 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useAppTheme } from "@/contexts/theme-context";
+import { useData } from "@/contexts/data-context";
 
 const TIMER_PRESETS = [5, 10, 15, 20, 30, 45, 60];
 const INTERVAL_PRESETS = [0, 5, 10, 15, 20, 30]; // 0 = off
+const AMBIENT_SOUNDS = [
+  { id: "none", labelEn: "None", labelPt: "Nenhum" },
+  { id: "rain", labelEn: "Rain", labelPt: "Chuva" },
+  { id: "forest", labelEn: "Forest", labelPt: "Floresta" },
+  { id: "ocean", labelEn: "Ocean", labelPt: "Oceano" },
+];
 
 export default function TimerScreen() {
   useKeepAwake();
@@ -40,9 +47,11 @@ export default function TimerScreen() {
   const colors = Colors[colorScheme ?? "light"];
   const { colors: themeColors } = useAppTheme();
   const { language } = useLanguage();
+  const { addSession } = useData();
 
   const [duration, setDuration] = useState(10); // minutes
   const [intervalGong, setIntervalGong] = useState(0); // minutes, 0 = off
+  const [ambientSound, setAmbientSound] = useState("none");
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -53,6 +62,7 @@ export default function TimerScreen() {
   const startSoundRef = useRef<Audio.Sound | null>(null);
   const intervalSoundRef = useRef<Audio.Sound | null>(null);
   const endSoundRef = useRef<Audio.Sound | null>(null);
+  const ambientSoundRef = useRef<Audio.Sound | null>(null);
   
   // Breathing animation
   const breathScale = useSharedValue(1);
@@ -107,6 +117,7 @@ export default function TimerScreen() {
       startSoundRef.current?.unloadAsync();
       intervalSoundRef.current?.unloadAsync();
       endSoundRef.current?.unloadAsync();
+      ambientSoundRef.current?.unloadAsync();
     };
   }, []);
 
@@ -169,7 +180,25 @@ export default function TimerScreen() {
     setIsRunning(false);
     setIsPaused(false);
     lastGongTimeRef.current = 0;
+    
+    // Stop ambient sound
+    if (ambientSoundRef.current) {
+      await ambientSoundRef.current.stopAsync();
+      await ambientSoundRef.current.unloadAsync();
+      ambientSoundRef.current = null;
+    }
+    
     await playBellSound("end");
+    
+    // Save meditation session
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+    await addSession({
+      date: todayStr,
+      timestamp: Date.now(),
+      durationMinutes: duration,
+      hasEntry: false,
+    });
     
     Alert.alert(
       language === "pt" ? "Meditação Completa 🧘" : "Meditation Complete 🧘",
@@ -195,6 +224,27 @@ export default function TimerScreen() {
 
   const handleStart = async () => {
     await playBellSound("start");
+    
+    // Start ambient sound if selected
+    if (ambientSound !== "none") {
+      try {
+        const soundFiles = {
+          rain: require("@/assets/sounds/ambient-rain.mp3"),
+          forest: require("@/assets/sounds/ambient-forest.mp3"),
+          ocean: require("@/assets/sounds/ambient-ocean.mp3"),
+        };
+        
+        const { sound } = await Audio.Sound.createAsync(
+          soundFiles[ambientSound as keyof typeof soundFiles],
+          { isLooping: true, volume: 0.4 }
+        );
+        ambientSoundRef.current = sound;
+        await sound.playAsync();
+      } catch (error) {
+        console.error("Error playing ambient sound:", error);
+      }
+    }
+    
     setShowPresets(false);
     setTimeRemaining(duration * 60);
     lastGongTimeRef.current = 0;
@@ -202,8 +252,18 @@ export default function TimerScreen() {
     setIsPaused(false);
   };
 
-  const handlePause = () => {
+  const handlePause = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Pause/resume ambient sound
+    if (ambientSoundRef.current) {
+      if (isPaused) {
+        await ambientSoundRef.current.playAsync();
+      } else {
+        await ambientSoundRef.current.pauseAsync();
+      }
+    }
+    
     setIsPaused(!isPaused);
   };
 
@@ -219,12 +279,19 @@ export default function TimerScreen() {
         {
           text: language === "pt" ? "Parar" : "Stop",
           style: "destructive",
-          onPress: () => {
+          onPress: async () => {
             setIsRunning(false);
             setIsPaused(false);
             setShowPresets(true);
             setTimeRemaining(duration * 60);
             lastGongTimeRef.current = 0;
+            
+            // Stop ambient sound
+            if (ambientSoundRef.current) {
+              await ambientSoundRef.current.stopAsync();
+              await ambientSoundRef.current.unloadAsync();
+              ambientSoundRef.current = null;
+            }
           },
         },
       ]
@@ -391,6 +458,43 @@ export default function TimerScreen() {
                       ]}
                     >
                       {getIntervalLabel(preset)}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Ambient Sound Selector */}
+            <View style={styles.presetsContainer}>
+              <View style={styles.intervalHeader}>
+                <IconSymbol name="speaker.wave.2.fill" size={18} color={themeColors.tintSecondary} />
+                <ThemedText style={[styles.presetsLabel, { color: colors.textSecondary, marginBottom: 0 }]}>
+                  {language === "pt" ? "Som Ambiente" : "Ambient Sound"}
+                </ThemedText>
+              </View>
+              <View style={styles.presets}>
+                {AMBIENT_SOUNDS.map((sound) => (
+                  <Pressable
+                    key={sound.id}
+                    style={[
+                      styles.intervalButton,
+                      {
+                        backgroundColor: ambientSound === sound.id ? themeColors.tintSecondary : colors.surface,
+                        borderColor: ambientSound === sound.id ? themeColors.tintSecondary : colors.border,
+                      },
+                    ]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setAmbientSound(sound.id);
+                    }}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.intervalText,
+                        { color: ambientSound === sound.id ? "#FFFFFF" : colors.text },
+                      ]}
+                    >
+                      {language === "pt" ? sound.labelPt : sound.labelEn}
                     </ThemedText>
                   </Pressable>
                 ))}

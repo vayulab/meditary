@@ -25,7 +25,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.0.0",
+  version: "1.4.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
@@ -75,9 +75,9 @@ const config: ExpoConfig = {
         image: "./assets/images/splash-icon.png",
         imageWidth: 200,
         resizeMode: "contain",
-        backgroundColor: "#F8F9FC",
+        backgroundColor: "#7C3AED",
         dark: {
-          backgroundColor: "#0F0F1A",
+          backgroundColor: "#1F1B2E",
         },
       },
     ],

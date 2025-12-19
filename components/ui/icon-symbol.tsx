@@ -63,6 +63,8 @@ const MAPPING = {
   "hand.raised.fill": "pan-tool",
   "lungs.fill": "air",
   "zzz": "bedtime",
+  "speaker.wave.2.fill": "volume-up",
+  "line.3.horizontal": "drag-handle",
 } as IconMapping;
 
 /**

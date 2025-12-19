@@ -1,8 +1,7 @@
 import { useRouter } from "expo-router";
 import React from "react";
-import { View, ScrollView, Pressable, StyleSheet, Alert } from "react-native";
+import { View, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Clipboard from "expo-clipboard";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -32,25 +31,7 @@ export default function SettingsScreen() {
     router.push("/appearance" as any);
   };
 
-  const handleExportData = async () => {
-    try {
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        deviceId,
-        entries,
-        questions,
-      };
 
-      await Clipboard.setStringAsync(JSON.stringify(exportData, null, 2));
-      Alert.alert(
-        language === "pt" ? "Exportado" : "Exported",
-        language === "pt" ? "Dados copiados para a área de transferência!" : "Data copied to clipboard!"
-      );
-    } catch (error) {
-      console.error("Export error:", error);
-      Alert.alert("Error", language === "pt" ? "Erro ao exportar dados" : "Error exporting data");
-    }
-  };
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -173,30 +154,7 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
 
-        {/* Data Section */}
-        <View style={styles.section}>
-          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            {t("settingsExport")}
-          </ThemedText>
-          <Pressable onPress={handleExportData}>
-            <ThemedView style={[styles.card, { backgroundColor: colors.surface }]}>
-              <View style={styles.menuItem}>
-                <View style={styles.menuItemContent}>
-                  <IconSymbol name="square.and.arrow.up" size={24} color={colors.tint} />
-                  <View style={styles.menuItemText}>
-                    <ThemedText style={styles.menuItemTitle}>
-                      {t("settingsExport")}
-                    </ThemedText>
-                    <ThemedText style={[styles.menuItemDesc, { color: colors.textSecondary }]}>
-                      {t("settingsExportDesc")}
-                    </ThemedText>
-                  </View>
-                </View>
-                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-              </View>
-            </ThemedView>
-          </Pressable>
-        </View>
+
 
         {/* About Section */}
         <View style={styles.section}>
