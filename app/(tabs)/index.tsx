@@ -7,6 +7,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { EntryCard } from "@/components/entry-card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ThemedLotusIcon } from "@/components/themed-lotus-icon";
+import { useAppTheme } from "@/contexts/theme-context";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
@@ -19,6 +21,7 @@ export default function HomeScreen() {
   const colors = Colors[colorScheme ?? "light"];
   const { t, language } = useLanguage();
   const { entries, isLoading, getStreak, getEntryByDate } = useData();
+  const { colors: themeColors } = useAppTheme();
 
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
@@ -70,10 +73,15 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <ThemedText style={[styles.greeting, { color: colors.textSecondary }]}>
-            {getGreeting()}
-          </ThemedText>
-          <ThemedText style={styles.date}>{formatDate()}</ThemedText>
+          <View style={styles.headerTop}>
+            <View style={styles.headerText}>
+              <ThemedText style={[styles.greeting, { color: colors.textSecondary }]}>
+                {getGreeting()}
+              </ThemedText>
+              <ThemedText style={styles.date}>{formatDate()}</ThemedText>
+            </View>
+            <ThemedLotusIcon size={56} />
+          </View>
         </View>
 
         {/* Today's Status Card */}
@@ -175,6 +183,14 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.lg,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headerText: {
+    flex: 1,
   },
   greeting: {
     fontSize: 16,

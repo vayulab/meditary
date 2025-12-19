@@ -52,3 +52,10 @@
 - [x] Tinted Green (mint/sage)
 - [x] Tinted Orange (coral/sunset)
 - [x] Tinted Pink (rose/blush)
+
+## Bug Fixes (v1.2)
+- [x] Fix app icon to change according to selected theme
+- [x] Fix Meditation Timer layout - title and counter are cut off/hidden
+
+## New Features (v1.2)
+- [x] Add interval gong option in timer (every 5, 10, 15, 20, or 30 minutes)

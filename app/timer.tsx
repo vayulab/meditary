@@ -8,6 +8,7 @@ import {
   Pressable, 
   StyleSheet, 
   Alert,
+  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -25,11 +26,10 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
+import { useAppTheme } from "@/contexts/theme-context";
 
 const TIMER_PRESETS = [5, 10, 15, 20, 30, 45, 60];
-
-// Simple bell sound using Audio API
-const BELL_FREQUENCY = 528; // Hz - healing frequency
+const INTERVAL_PRESETS = [0, 5, 10, 15, 20, 30]; // 0 = off
 
 export default function TimerScreen() {
   useKeepAwake();
@@ -38,16 +38,18 @@ export default function TimerScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
+  const { colors: themeColors } = useAppTheme();
   const { language } = useLanguage();
 
   const [duration, setDuration] = useState(10); // minutes
+  const [intervalGong, setIntervalGong] = useState(0); // minutes, 0 = off
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showPresets, setShowPresets] = useState(true);
   
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const lastGongTimeRef = useRef<number>(0);
   
   // Breathing animation
   const breathScale = useSharedValue(1);
@@ -68,20 +70,16 @@ export default function TimerScreen() {
     transform: [{ scale: breathScale.value }],
   }));
 
-  // Load and play bell sound
+  // Play bell/gong sound
   const playBellSound = useCallback(async () => {
     try {
-      // Configure audio mode
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
         staysActiveInBackground: true,
       });
 
-      // Create a simple sine wave bell sound
-      // Since we can't generate audio dynamically easily, we'll use haptic feedback as fallback
+      // Use haptic feedback as bell sound
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      
-      // Play multiple haptic pulses to simulate bell
       setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 200);
       setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 400);
       setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 600);
@@ -90,7 +88,7 @@ export default function TimerScreen() {
     }
   }, []);
 
-  // Timer logic
+  // Timer logic with interval gong
   useEffect(() => {
     if (isRunning && !isPaused) {
       intervalRef.current = setInterval(() => {
@@ -99,6 +97,18 @@ export default function TimerScreen() {
             handleTimerComplete();
             return 0;
           }
+          
+          // Check for interval gong
+          if (intervalGong > 0) {
+            const elapsed = duration * 60 - prev + 1;
+            const intervalSeconds = intervalGong * 60;
+            
+            if (elapsed > 0 && elapsed % intervalSeconds === 0 && elapsed !== lastGongTimeRef.current) {
+              lastGongTimeRef.current = elapsed;
+              playBellSound();
+            }
+          }
+          
           return prev - 1;
         });
       }, 1000);
@@ -109,11 +119,12 @@ export default function TimerScreen() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, isPaused]);
+  }, [isRunning, isPaused, intervalGong, duration]);
 
   const handleTimerComplete = async () => {
     setIsRunning(false);
     setIsPaused(false);
+    lastGongTimeRef.current = 0;
     await playBellSound();
     
     Alert.alert(
@@ -142,6 +153,7 @@ export default function TimerScreen() {
     await playBellSound();
     setShowPresets(false);
     setTimeRemaining(duration * 60);
+    lastGongTimeRef.current = 0;
     setIsRunning(true);
     setIsPaused(false);
   };
@@ -168,6 +180,7 @@ export default function TimerScreen() {
             setIsPaused(false);
             setShowPresets(true);
             setTimeRemaining(duration * 60);
+            lastGongTimeRef.current = 0;
           },
         },
       ]
@@ -180,14 +193,24 @@ export default function TimerScreen() {
     setTimeRemaining(minutes * 60);
   };
 
+  const handleIntervalSelect = (minutes: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIntervalGong(minutes);
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const getIntervalLabel = (minutes: number) => {
+    if (minutes === 0) return language === "pt" ? "Desligado" : "Off";
+    return `${minutes} min`;
+  };
+
   const progress = isRunning ? (duration * 60 - timeRemaining) / (duration * 60) : 0;
-  const circumference = 2 * Math.PI * 120;
+  const circumference = 2 * Math.PI * 100;
   const strokeDashoffset = circumference * (1 - progress);
 
   return (
@@ -198,47 +221,52 @@ export default function TimerScreen() {
           styles.header, 
           { 
             paddingTop: Math.max(insets.top, 20) + Spacing.sm,
+            borderBottomColor: colors.border,
           }
         ]}
       >
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <IconSymbol name="chevron.left" size={24} color={colors.tint} />
-          <ThemedText style={[styles.backText, { color: colors.tint }]}>
+          <IconSymbol name="chevron.left" size={24} color={themeColors.tint} />
+          <ThemedText style={[styles.backText, { color: themeColors.tint }]}>
             {language === "pt" ? "Voltar" : "Back"}
           </ThemedText>
         </Pressable>
-      </View>
-
-      <View style={styles.content}>
-        <ThemedText style={styles.title}>
+        <ThemedText style={styles.headerTitle}>
           {language === "pt" ? "Timer de Meditação" : "Meditation Timer"}
         </ThemedText>
+        <View style={styles.headerSpacer} />
+      </View>
 
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Timer Circle */}
         <Animated.View style={[styles.timerContainer, breathingStyle]}>
-          <Svg width={280} height={280} style={styles.progressRing}>
+          <Svg width={240} height={240} style={styles.progressRing}>
             {/* Background circle */}
             <Circle
-              cx={140}
-              cy={140}
-              r={120}
+              cx={120}
+              cy={120}
+              r={100}
               stroke={colors.border}
-              strokeWidth={12}
+              strokeWidth={10}
               fill="none"
             />
             {/* Progress circle */}
             <Circle
-              cx={140}
-              cy={140}
-              r={120}
-              stroke={colors.tint}
-              strokeWidth={12}
+              cx={120}
+              cy={120}
+              r={100}
+              stroke={themeColors.tint}
+              strokeWidth={10}
               fill="none"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
               rotation="-90"
-              origin="140, 140"
+              origin="120, 120"
             />
           </Svg>
           
@@ -259,42 +287,79 @@ export default function TimerScreen() {
 
         {/* Preset Selection */}
         {showPresets && (
-          <View style={styles.presetsContainer}>
-            <ThemedText style={[styles.presetsLabel, { color: colors.textSecondary }]}>
-              {language === "pt" ? "Duração (minutos)" : "Duration (minutes)"}
-            </ThemedText>
-            <View style={styles.presets}>
-              {TIMER_PRESETS.map((preset) => (
-                <Pressable
-                  key={preset}
-                  style={[
-                    styles.presetButton,
-                    {
-                      backgroundColor: duration === preset ? colors.tint : colors.surface,
-                      borderColor: duration === preset ? colors.tint : colors.border,
-                    },
-                  ]}
-                  onPress={() => handlePresetSelect(preset)}
-                >
-                  <ThemedText
+          <>
+            {/* Duration Presets */}
+            <View style={styles.presetsContainer}>
+              <ThemedText style={[styles.presetsLabel, { color: colors.textSecondary }]}>
+                {language === "pt" ? "Duração (minutos)" : "Duration (minutes)"}
+              </ThemedText>
+              <View style={styles.presets}>
+                {TIMER_PRESETS.map((preset) => (
+                  <Pressable
+                    key={preset}
                     style={[
-                      styles.presetText,
-                      { color: duration === preset ? "#FFFFFF" : colors.text },
+                      styles.presetButton,
+                      {
+                        backgroundColor: duration === preset ? themeColors.tint : colors.surface,
+                        borderColor: duration === preset ? themeColors.tint : colors.border,
+                      },
                     ]}
+                    onPress={() => handlePresetSelect(preset)}
                   >
-                    {preset}
-                  </ThemedText>
-                </Pressable>
-              ))}
+                    <ThemedText
+                      style={[
+                        styles.presetText,
+                        { color: duration === preset ? "#FFFFFF" : colors.text },
+                      ]}
+                    >
+                      {preset}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          </View>
+
+            {/* Interval Gong Presets */}
+            <View style={styles.presetsContainer}>
+              <View style={styles.intervalHeader}>
+                <IconSymbol name="bell.fill" size={18} color={themeColors.tintSecondary} />
+                <ThemedText style={[styles.presetsLabel, { color: colors.textSecondary, marginBottom: 0 }]}>
+                  {language === "pt" ? "Gongo a cada" : "Gong every"}
+                </ThemedText>
+              </View>
+              <View style={styles.presets}>
+                {INTERVAL_PRESETS.map((preset) => (
+                  <Pressable
+                    key={`interval-${preset}`}
+                    style={[
+                      styles.intervalButton,
+                      {
+                        backgroundColor: intervalGong === preset ? themeColors.tintSecondary : colors.surface,
+                        borderColor: intervalGong === preset ? themeColors.tintSecondary : colors.border,
+                      },
+                    ]}
+                    onPress={() => handleIntervalSelect(preset)}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.intervalText,
+                        { color: intervalGong === preset ? "#FFFFFF" : colors.text },
+                      ]}
+                    >
+                      {getIntervalLabel(preset)}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </>
         )}
 
         {/* Controls */}
         <View style={styles.controls}>
           {!isRunning ? (
             <Pressable
-              style={[styles.startButton, { backgroundColor: colors.tint }]}
+              style={[styles.startButton, { backgroundColor: themeColors.tint }]}
               onPress={handleStart}
             >
               <IconSymbol name="play.fill" size={32} color="#FFFFFF" />
@@ -315,7 +380,7 @@ export default function TimerScreen() {
                 style={[
                   styles.controlButton,
                   styles.pauseButton,
-                  { backgroundColor: isPaused ? colors.tintSecondary : colors.tint },
+                  { backgroundColor: isPaused ? themeColors.tintSecondary : themeColors.tint },
                 ]}
                 onPress={handlePause}
               >
@@ -331,8 +396,8 @@ export default function TimerScreen() {
 
         {/* Tips */}
         {!isRunning && (
-          <ThemedView style={[styles.tipsCard, { backgroundColor: colors.tint + "15" }]}>
-            <IconSymbol name="info.circle" size={20} color={colors.tint} />
+          <ThemedView style={[styles.tipsCard, { backgroundColor: themeColors.tint + "15" }]}>
+            <IconSymbol name="info.circle" size={20} color={themeColors.tint} />
             <ThemedText style={[styles.tipsText, { color: colors.textSecondary }]}>
               {language === "pt" 
                 ? "Encontre um lugar tranquilo, sente-se confortavelmente e feche os olhos. O sino tocará no início e no fim da sessão."
@@ -341,7 +406,20 @@ export default function TimerScreen() {
             </ThemedText>
           </ThemedView>
         )}
-      </View>
+
+        {/* Interval Gong Info */}
+        {!isRunning && intervalGong > 0 && (
+          <ThemedView style={[styles.intervalInfo, { backgroundColor: themeColors.tintSecondary + "15" }]}>
+            <IconSymbol name="bell.fill" size={18} color={themeColors.tintSecondary} />
+            <ThemedText style={[styles.intervalInfoText, { color: colors.textSecondary }]}>
+              {language === "pt" 
+                ? `O gongo tocará a cada ${intervalGong} minutos durante a meditação.`
+                : `The gong will sound every ${intervalGong} minutes during meditation.`
+              }
+            </ThemedText>
+          </ThemedView>
+        )}
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -353,34 +431,44 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: Spacing.md,
     paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
   },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: -Spacing.sm,
+    minWidth: 80,
   },
   backText: {
     fontSize: 16,
     marginLeft: Spacing.xs,
   },
-  content: {
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  headerSpacer: {
+    minWidth: 80,
+  },
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     alignItems: "center",
     paddingHorizontal: Spacing.md,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xxl,
   },
   timerContainer: {
-    width: 280,
-    height: 280,
+    width: 240,
+    height: 240,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   progressRing: {
     position: "absolute",
@@ -389,21 +477,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timerText: {
-    fontSize: 56,
+    fontSize: 48,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
+    lineHeight: 56,
   },
   timerLabel: {
     fontSize: 16,
     marginTop: Spacing.xs,
+    lineHeight: 24,
   },
   presetsContainer: {
     width: "100%",
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   presetsLabel: {
     fontSize: 14,
     textAlign: "center",
+    marginBottom: Spacing.md,
+  },
+  intervalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.xs,
     marginBottom: Spacing.md,
   },
   presets: {
@@ -413,19 +510,31 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   presetButton: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   presetText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
   },
+  intervalButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  intervalText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
   controls: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   startButton: {
     flexDirection: "row",
@@ -435,7 +544,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: BorderRadius.lg,
-    minWidth: 200,
+    minWidth: 180,
   },
   startButtonText: {
     color: "#FFFFFF",
@@ -470,9 +579,23 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
-    marginHorizontal: Spacing.md,
+    width: "100%",
   },
   tipsText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  intervalInfo: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    width: "100%",
+    marginTop: Spacing.sm,
+  },
+  intervalInfoText: {
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
