@@ -14,6 +14,7 @@ export const translations = {
     tabHome: "Home",
     tabNewEntry: "New Entry",
     tabHistory: "History",
+    tabProgress: "Progress",
     tabSettings: "Settings",
     
     // Home Screen
@@ -125,6 +126,7 @@ export const translations = {
     tabHome: "Início",
     tabNewEntry: "Novo Registro",
     tabHistory: "Histórico",
+    tabProgress: "Progresso",
     tabSettings: "Ajustes",
     
     // Home Screen

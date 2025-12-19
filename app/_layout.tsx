@@ -19,6 +19,7 @@ import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/manus-runtime";
 import { LanguageProvider } from "@/contexts/language-context";
 import { DataProvider } from "@/contexts/data-context";
+import { ThemeProvider as AppThemeProvider } from "@/contexts/theme-context";
 import { Colors } from "@/constants/theme";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -102,6 +103,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <LanguageProvider>
             <DataProvider>
+              <AppThemeProvider>
               <ThemeProvider value={colorScheme === "dark" ? MeditaryDarkTheme : MeditaryLightTheme}>
                 <Stack>
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -126,10 +128,32 @@ export default function RootLayout() {
                       headerShown: false,
                     }} 
                   />
+                  <Stack.Screen 
+                    name="reminders" 
+                    options={{ 
+                      presentation: "card",
+                      headerShown: false,
+                    }} 
+                  />
+                  <Stack.Screen 
+                    name="timer" 
+                    options={{ 
+                      presentation: "card",
+                      headerShown: false,
+                    }} 
+                  />
+                  <Stack.Screen 
+                    name="appearance" 
+                    options={{ 
+                      presentation: "card",
+                      headerShown: false,
+                    }} 
+                  />
                   <Stack.Screen name="oauth/callback" options={{ headerShown: false }} />
                 </Stack>
                 <StatusBar style="auto" />
               </ThemeProvider>
+            </AppThemeProvider>
             </DataProvider>
           </LanguageProvider>
         </QueryClientProvider>

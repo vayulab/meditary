@@ -111,16 +111,25 @@ export default function HomeScreen() {
           </View>
         </ThemedView>
 
-        {/* Log Meditation Button */}
-        <Pressable
-          style={[styles.logButton, { backgroundColor: colors.tint }]}
-          onPress={() => router.push("/new-entry" as any)}
-        >
-          <IconSymbol name="plus" size={24} color="#FFFFFF" />
-          <ThemedText style={styles.logButtonText}>
-            {t("homeLogMeditation")}
-          </ThemedText>
-        </Pressable>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <Pressable
+            style={[styles.logButton, { backgroundColor: colors.tint, flex: 1 }]}
+            onPress={() => router.push("/new-entry" as any)}
+          >
+            <IconSymbol name="plus" size={24} color="#FFFFFF" />
+            <ThemedText style={styles.logButtonText}>
+              {t("homeLogMeditation")}
+            </ThemedText>
+          </Pressable>
+          
+          <Pressable
+            style={[styles.timerButton, { backgroundColor: colors.tintSecondary }]}
+            onPress={() => router.push("/timer" as any)}
+          >
+            <IconSymbol name="timer" size={24} color="#FFFFFF" />
+          </Pressable>
+        </View>
 
         {/* Recent Entries */}
         <View style={styles.recentSection}>
@@ -218,6 +227,11 @@ const styles = StyleSheet.create({
     height: 48,
     marginHorizontal: Spacing.md,
   },
+  actionButtons: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
   logButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -225,7 +239,13 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
-    marginBottom: Spacing.xl,
+  },
+  timerButton: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
   logButtonText: {
     color: "#FFFFFF",

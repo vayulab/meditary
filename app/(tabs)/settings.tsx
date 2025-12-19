@@ -24,6 +24,14 @@ export default function SettingsScreen() {
     await setLanguage(lang);
   };
 
+  const handleReminders = () => {
+    router.push("/reminders" as any);
+  };
+
+  const handleAppearance = () => {
+    router.push("/appearance" as any);
+  };
+
   const handleExportData = async () => {
     try {
       const exportData = {
@@ -88,6 +96,56 @@ export default function SettingsScreen() {
               )}
             </Pressable>
           </ThemedView>
+        </View>
+
+        {/* Appearance Section */}
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            {language === "pt" ? "Aparência" : "Appearance"}
+          </ThemedText>
+          <Pressable onPress={handleAppearance}>
+            <ThemedView style={[styles.card, { backgroundColor: colors.surface }]}>
+              <View style={styles.menuItem}>
+                <View style={styles.menuItemContent}>
+                  <IconSymbol name="sun.max.fill" size={24} color={colors.tint} />
+                  <View style={styles.menuItemText}>
+                    <ThemedText style={styles.menuItemTitle}>
+                      {language === "pt" ? "Tema e Ícone" : "Theme & Icon"}
+                    </ThemedText>
+                    <ThemedText style={[styles.menuItemDesc, { color: colors.textSecondary }]}>
+                      {language === "pt" ? "Cores inspiradas no iOS 26" : "iOS 26 inspired colors"}
+                    </ThemedText>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </View>
+            </ThemedView>
+          </Pressable>
+        </View>
+
+        {/* Reminders Section */}
+        <View style={styles.section}>
+          <ThemedText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            {language === "pt" ? "Lembretes" : "Reminders"}
+          </ThemedText>
+          <Pressable onPress={handleReminders}>
+            <ThemedView style={[styles.card, { backgroundColor: colors.surface }]}>
+              <View style={styles.menuItem}>
+                <View style={styles.menuItemContent}>
+                  <IconSymbol name="bell.fill" size={24} color={colors.tint} />
+                  <View style={styles.menuItemText}>
+                    <ThemedText style={styles.menuItemTitle}>
+                      {language === "pt" ? "Lembretes Diários" : "Daily Reminders"}
+                    </ThemedText>
+                    <ThemedText style={[styles.menuItemDesc, { color: colors.textSecondary }]}>
+                      {language === "pt" ? "Configure notificações para meditar" : "Set up meditation notifications"}
+                    </ThemedText>
+                  </View>
+                </View>
+                <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+              </View>
+            </ThemedView>
+          </Pressable>
         </View>
 
         {/* Questions Section */}

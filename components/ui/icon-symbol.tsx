@@ -17,6 +17,19 @@ const MAPPING = {
   "plus.circle.fill": "add-circle",
   "calendar": "calendar-today",
   "gearshape.fill": "settings",
+  "chart.bar.fill": "bar-chart",
+  "chart.bar": "bar-chart",
+  
+  // Notifications
+  "bell.fill": "notifications",
+  "chevron.up": "keyboard-arrow-up",
+  "chevron.down": "keyboard-arrow-down",
+  "brain": "psychology",
+  "checkmark.circle.fill": "check-circle",
+  "timer": "timer",
+  "play.fill": "play-arrow",
+  "pause.fill": "pause",
+  "stop.fill": "stop",
   
   // Navigation & actions
   "chevron.left": "chevron-left",

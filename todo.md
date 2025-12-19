@@ -37,3 +37,18 @@
 - [x] Smooth animations
 - [x] Empty states for no entries
 - [x] Success feedback on save
+
+## New Features (v1.1)
+- [x] Daily reminder notifications with customizable time
+- [x] Progress charts screen with weekly/monthly visualizations
+- [x] Meditation timer with bell sounds
+- [x] Multiple logo/theme options based on iOS 26 Liquid Glass colors
+- [x] Theme selector in settings
+
+## iOS 26 Inspired Logo Colors
+- [x] Clear/Glass (translucent white/silver)
+- [x] Tinted Blue (ocean/sky blue)
+- [x] Tinted Purple (lavender/violet)
+- [x] Tinted Green (mint/sage)
+- [x] Tinted Orange (coral/sunset)
+- [x] Tinted Pink (rose/blush)
