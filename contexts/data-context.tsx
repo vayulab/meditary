@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 
 import { 
   MeditationEntry, 
+  MeditationSession,
   Question, 
   DEFAULT_QUESTIONS, 
   STORAGE_KEYS 
@@ -13,6 +14,7 @@ import {
 
 interface DataContextType {
   entries: MeditationEntry[];
+  sessions: MeditationSession[];
   questions: Question[];
   deviceId: string;
   isLoading: boolean;
@@ -21,6 +23,11 @@ interface DataContextType {
   deleteEntry: (id: string) => Promise<void>;
   getEntryByDate: (date: string) => MeditationEntry | undefined;
   getEntriesForMonth: (year: number, month: number) => MeditationEntry[];
+  addSession: (session: Omit<MeditationSession, "id" | "deviceId">) => Promise<void>;
+  getSessionsForMonth: (year: number, month: number) => MeditationSession[];
+  getTotalMinutesMeditated: () => number;
+  getAverageConcentration: () => number;
+  getWeeklyStats: () => { date: string; minutes: number; count: number }[];
   addQuestion: (question: Omit<Question, "id" | "order">) => Promise<void>;
   updateQuestion: (id: string, updates: Partial<Question>) => Promise<void>;
   deleteQuestion: (id: string) => Promise<void>;
@@ -34,6 +41,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [entries, setEntries] = useState<MeditationEntry[]>([]);
+  const [sessions, setSessions] = useState<MeditationSession[]>([]);
   const [questions, setQuestions] = useState<Question[]>(DEFAULT_QUESTIONS);
   const [deviceId, setDeviceId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -68,6 +76,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const storedEntries = await AsyncStorage.getItem(STORAGE_KEYS.ENTRIES);
       if (storedEntries) {
         setEntries(JSON.parse(storedEntries));
+      }
+
+      // Load sessions
+      const storedSessions = await AsyncStorage.getItem(STORAGE_KEYS.SESSIONS);
+      if (storedSessions) {
+        setSessions(JSON.parse(storedSessions));
       }
 
       // Load questions
@@ -196,9 +210,69 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return getEntriesForMonth(year, month).length;
   }, [getEntriesForMonth]);
 
+  // Session management
+  const addSession = useCallback(async (session: Omit<MeditationSession, "id" | "deviceId">) => {
+    const newSession: MeditationSession = {
+      ...session,
+      id: Crypto.randomUUID(),
+      deviceId,
+    };
+    
+    const updatedSessions = [...sessions, newSession].sort((a, b) => b.timestamp - a.timestamp);
+    setSessions(updatedSessions);
+    await AsyncStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(updatedSessions));
+  }, [sessions, deviceId]);
+
+  const getSessionsForMonth = useCallback((year: number, month: number): MeditationSession[] => {
+    return sessions.filter(session => {
+      const d = new Date(session.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+  }, [sessions]);
+
+  // Statistics
+  const getTotalMinutesMeditated = useCallback((): number => {
+    const entriesMinutes = entries.reduce((sum, entry) => sum + (entry.durationMinutes || 0), 0);
+    const sessionsMinutes = sessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+    return entriesMinutes + sessionsMinutes;
+  }, [entries, sessions]);
+
+  const getAverageConcentration = useCallback((): number => {
+    const concentrationAnswers = entries
+      .map(entry => entry.answers.find(a => a.questionId === "concentration"))
+      .filter(answer => answer && typeof answer.value === "number")
+      .map(answer => answer!.value as number);
+    
+    if (concentrationAnswers.length === 0) return 0;
+    return concentrationAnswers.reduce((sum, val) => sum + val, 0) / concentrationAnswers.length;
+  }, [entries]);
+
+  const getWeeklyStats = useCallback((): { date: string; minutes: number; count: number }[] => {
+    const today = new Date();
+    const stats: { date: string; minutes: number; count: number }[] = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+      
+      const dayEntries = entries.filter(e => e.date === dateStr);
+      const daySessions = sessions.filter(s => s.date === dateStr);
+      
+      const minutes = dayEntries.reduce((sum, e) => sum + (e.durationMinutes || 0), 0) +
+                     daySessions.reduce((sum, s) => sum + s.durationMinutes, 0);
+      const count = dayEntries.length + daySessions.length;
+      
+      stats.push({ date: dateStr, minutes, count });
+    }
+    
+    return stats;
+  }, [entries, sessions]);
+
   return (
     <DataContext.Provider value={{
       entries,
+      sessions,
       questions,
       deviceId,
       isLoading,
@@ -207,6 +281,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       deleteEntry,
       getEntryByDate,
       getEntriesForMonth,
+      addSession,
+      getSessionsForMonth,
+      getTotalMinutesMeditated,
+      getAverageConcentration,
+      getWeeklyStats,
       addQuestion,
       updateQuestion,
       deleteQuestion,

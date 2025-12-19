@@ -59,3 +59,11 @@
 
 ## New Features (v1.2)
 - [x] Add interval gong option in timer (every 5, 10, 15, 20, or 30 minutes)
+
+## New Features (v1.3)
+- [x] Add real bell/gong audio sounds to timer
+- [x] Implement detailed statistics (total time meditated, average concentration, trends)
+- [x] Unify history to consider both meditation timer data and diary entries
+- [x] Create comprehensive use case documentation
+- [x] Develop complete test cases
+- [x] Validate app functionality across all scenarios

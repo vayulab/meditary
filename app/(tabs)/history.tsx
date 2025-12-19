@@ -21,7 +21,7 @@ export default function HistoryScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
   const { t, language } = useLanguage();
-  const { entries, getEntriesForMonth } = useData();
+  const { entries, sessions, getEntriesForMonth, getSessionsForMonth } = useData();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
@@ -29,6 +29,7 @@ export default function HistoryScreen() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const monthEntries = getEntriesForMonth(year, month);
+  const monthSessions = getSessionsForMonth(year, month);
 
   const weekdays = language === "pt" ? WEEKDAYS_PT : WEEKDAYS_EN;
 
@@ -65,12 +66,19 @@ export default function HistoryScreen() {
 
   const hasEntryOnDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return monthEntries.some(e => e.date === dateStr);
+    const hasEntry = monthEntries.some(e => e.date === dateStr);
+    const hasSession = monthSessions.some(s => s.date === dateStr);
+    return hasEntry || hasSession;
   };
 
   const getEntryForDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     return monthEntries.find(e => e.date === dateStr);
+  };
+
+  const getSessionForDay = (day: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return monthSessions.find(s => s.date === dateStr);
   };
 
   const handleDayPress = (day: number) => {

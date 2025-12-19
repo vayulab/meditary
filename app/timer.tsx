@@ -50,6 +50,9 @@ export default function TimerScreen() {
   
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastGongTimeRef = useRef<number>(0);
+  const startSoundRef = useRef<Audio.Sound | null>(null);
+  const intervalSoundRef = useRef<Audio.Sound | null>(null);
+  const endSoundRef = useRef<Audio.Sound | null>(null);
   
   // Breathing animation
   const breathScale = useSharedValue(1);
@@ -70,21 +73,62 @@ export default function TimerScreen() {
     transform: [{ scale: breathScale.value }],
   }));
 
-  // Play bell/gong sound
-  const playBellSound = useCallback(async () => {
-    try {
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-      });
+  // Load audio sounds
+  useEffect(() => {
+    const loadSounds = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: true,
+        });
 
-      // Use haptic feedback as bell sound
+        const { sound: startSound } = await Audio.Sound.createAsync(
+          require("@/assets/sounds/bell-start.mp3")
+        );
+        startSoundRef.current = startSound;
+
+        const { sound: intervalSound } = await Audio.Sound.createAsync(
+          require("@/assets/sounds/bell-interval.mp3")
+        );
+        intervalSoundRef.current = intervalSound;
+
+        const { sound: endSound } = await Audio.Sound.createAsync(
+          require("@/assets/sounds/bell-end.mp3")
+        );
+        endSoundRef.current = endSound;
+      } catch (error) {
+        console.error("Error loading sounds:", error);
+      }
+    };
+
+    loadSounds();
+
+    return () => {
+      startSoundRef.current?.unloadAsync();
+      intervalSoundRef.current?.unloadAsync();
+      endSoundRef.current?.unloadAsync();
+    };
+  }, []);
+
+  // Play bell sound (start/end)
+  const playBellSound = useCallback(async (type: "start" | "end" | "interval" = "start") => {
+    try {
+      const sound = type === "start" 
+        ? startSoundRef.current 
+        : type === "end" 
+        ? endSoundRef.current 
+        : intervalSoundRef.current;
+
+      if (sound) {
+        await sound.replayAsync();
+      }
+      
+      // Add haptic feedback
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 200);
-      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 400);
-      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 600);
     } catch (error) {
       console.error("Error playing bell sound:", error);
+      // Fallback to haptic only
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   }, []);
 
@@ -105,7 +149,7 @@ export default function TimerScreen() {
             
             if (elapsed > 0 && elapsed % intervalSeconds === 0 && elapsed !== lastGongTimeRef.current) {
               lastGongTimeRef.current = elapsed;
-              playBellSound();
+              playBellSound("interval");
             }
           }
           
@@ -125,7 +169,7 @@ export default function TimerScreen() {
     setIsRunning(false);
     setIsPaused(false);
     lastGongTimeRef.current = 0;
-    await playBellSound();
+    await playBellSound("end");
     
     Alert.alert(
       language === "pt" ? "Meditação Completa 🧘" : "Meditation Complete 🧘",
@@ -150,7 +194,7 @@ export default function TimerScreen() {
   };
 
   const handleStart = async () => {
-    await playBellSound();
+    await playBellSound("start");
     setShowPresets(false);
     setTimeRemaining(duration * 60);
     lastGongTimeRef.current = 0;

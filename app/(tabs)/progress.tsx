@@ -28,7 +28,14 @@ export default function ProgressScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
   const { language } = useLanguage();
-  const { entries, questions } = useData();
+  const { 
+    entries, 
+    sessions,
+    questions, 
+    getTotalMinutesMeditated, 
+    getAverageConcentration, 
+    getWeeklyStats 
+  } = useData();
 
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
 
@@ -76,21 +83,8 @@ export default function ProgressScreen() {
   // Calculate statistics
   const stats = useMemo(() => {
     const totalEntries = filteredEntries.length;
-    
-    // Calculate average concentration (first question is concentration)
-    const concentrationQuestion = questions.find(q => q.id === "concentration");
-    let avgConcentration = 0;
-    
-    if (concentrationQuestion) {
-      const concentrationAnswers = filteredEntries
-        .map(entry => entry.answers.find(a => a.questionId === "concentration"))
-        .filter(a => a && typeof a.value === "number")
-        .map(a => a!.value as number);
-      
-      if (concentrationAnswers.length > 0) {
-        avgConcentration = concentrationAnswers.reduce((a, b) => a + b, 0) / concentrationAnswers.length;
-      }
-    }
+    const totalMinutes = getTotalMinutesMeditated();
+    const avgConcentration = getAverageConcentration();
 
     // Calculate streak
     let currentStreak = 0;
@@ -109,8 +103,8 @@ export default function ProgressScreen() {
       }
     }
 
-    return { totalEntries, avgConcentration, currentStreak };
-  }, [filteredEntries, questions, entries]);
+    return { totalEntries, totalMinutes, avgConcentration, currentStreak };
+  }, [filteredEntries, entries, getTotalMinutesMeditated, getAverageConcentration]);
 
   // Generate chart data
   const chartData = useMemo(() => {
@@ -406,7 +400,7 @@ export default function ProgressScreen() {
           ))}
         </View>
 
-        {/* Stats Cards */}
+        {/* Stats Cards Row 1 */}
         <View style={styles.statsRow}>
           <ThemedView style={[styles.statCard, { backgroundColor: colors.surface }]}>
             <IconSymbol name="flame.fill" size={24} color={colors.tint} />
@@ -421,6 +415,19 @@ export default function ProgressScreen() {
             <ThemedText style={styles.statValue}>{stats.totalEntries}</ThemedText>
             <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
               {language === "pt" ? "Meditações" : "Meditations"}
+            </ThemedText>
+          </ThemedView>
+        </View>
+
+        {/* Stats Cards Row 2 */}
+        <View style={styles.statsRow}>
+          <ThemedView style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <IconSymbol name="timer" size={24} color="#34C759" />
+            <ThemedText style={styles.statValue}>
+              {stats.totalMinutes}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
+              {language === "pt" ? "Minutos totais" : "Total minutes"}
             </ThemedText>
           </ThemedView>
           

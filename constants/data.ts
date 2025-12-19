@@ -23,6 +23,16 @@ export interface MeditationEntry {
   deviceId: string;
   answers: Answer[];
   notes?: string;
+  durationMinutes?: number; // Duration of meditation session (from timer)
+}
+
+export interface MeditationSession {
+  id: string;
+  date: string; // ISO date string YYYY-MM-DD
+  timestamp: number;
+  deviceId: string;
+  durationMinutes: number;
+  hasEntry: boolean; // Whether user also logged a diary entry
 }
 
 export interface AppSettings {
@@ -120,4 +130,5 @@ export const STORAGE_KEYS = {
   QUESTIONS: "@meditary/questions",
   SETTINGS: "@meditary/settings",
   DEVICE_ID: "@meditary/deviceId",
+  SESSIONS: "@meditary/sessions",
 };
