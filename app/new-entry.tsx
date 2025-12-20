@@ -93,8 +93,8 @@ export default function NewEntryScreen() {
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         {/* Header */}
         <View 
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.md,
-    paddingBottom: 120, // Extra padding to ensure save button is visible above keyboard
+    paddingBottom: 200, // Extra padding to ensure save button is visible above keyboard
   },
   dateSection: {
     flexDirection: "row",

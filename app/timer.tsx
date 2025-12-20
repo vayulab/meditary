@@ -33,9 +33,9 @@ import { getLocalDateString } from "@/lib/date-utils";
 const TIMER_PRESETS = [5, 10, 15, 20, 30, 45, 60];
 const INTERVAL_PRESETS = [0, 5, 10, 15, 20, 30]; // 0 = off
 const GONG_SOUNDS = [
-  { id: "tibetan", labelEn: "Tibetan Gong", labelPt: "Gongo Tibetano" },
-  { id: "japanese", labelEn: "Japanese Gong", labelPt: "Gongo Japonês" },
-  { id: "chinese", labelEn: "Chinese Gong", labelPt: "Gongo Chinês" },
+  { id: "gong-1", labelEn: "Notification Bell", labelPt: "Sino de Notificação" },
+  { id: "gong-2", labelEn: "Tibetan Bowl (E♭)", labelPt: "Tigela Tibetana (Mi♭)" },
+  { id: "gong-3", labelEn: "Zen Bowl (Long Stroke)", labelPt: "Tigela Zen (Golpe Longo)" },
 ];
 
 export default function TimerScreen() {
@@ -51,7 +51,7 @@ export default function TimerScreen() {
 
   const [duration, setDuration] = useState(10); // minutes
   const [intervalGong, setIntervalGong] = useState(0); // minutes, 0 = off
-  const [gongSound, setGongSound] = useState("tibetan");
+  const [gongSound, setGongSound] = useState("gong-1");
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -92,14 +92,20 @@ export default function TimerScreen() {
           staysActiveInBackground: true,
         });
 
-        // Load gong sounds based on selected type
-        const gongSoundFile = gongSound === "tibetan" 
-          ? require("@/assets/sounds/gong-tibetan.mp3")
-          : gongSound === "japanese"
-          ? require("@/assets/sounds/gong-japanese.mp3")
-          : require("@/assets/sounds/gong-chinese.mp3");
+        // Load start bell sound
+        const startBellFile = require("@/assets/sounds/bell-start.mp3");
         
-        const { sound: startSound } = await Audio.Sound.createAsync(gongSoundFile);
+        // Load gong sounds based on selected type
+        const gongSoundFile = gongSound === "gong-1" 
+          ? require("@/assets/sounds/gong-1.mp3")
+          : gongSound === "gong-2"
+          ? require("@/assets/sounds/gong-2.mp3")
+          : require("@/assets/sounds/gong-3.mp3");
+        
+        // Load end bell sound
+        const endBellFile = require("@/assets/sounds/bell-end.mp3");
+        
+        const { sound: startSound } = await Audio.Sound.createAsync(startBellFile);
         await startSound.setVolumeAsync(1.0); // Maximum volume
         startSoundRef.current = startSound;
 
@@ -107,7 +113,7 @@ export default function TimerScreen() {
         await intervalSound.setVolumeAsync(1.0); // Maximum volume
         intervalSoundRef.current = intervalSound;
 
-        const { sound: endSound } = await Audio.Sound.createAsync(gongSoundFile);
+        const { sound: endSound } = await Audio.Sound.createAsync(endBellFile);
         await endSound.setVolumeAsync(1.0); // Maximum volume
         endSoundRef.current = endSound;
       } catch (error) {
@@ -456,11 +462,11 @@ export default function TimerScreen() {
                       setGongSound(sound.id);
                       // Test play the selected gong
                       try {
-                        const testFile = sound.id === "tibetan" 
-                          ? require("@/assets/sounds/gong-tibetan.mp3")
-                          : sound.id === "japanese"
-                          ? require("@/assets/sounds/gong-japanese.mp3")
-                          : require("@/assets/sounds/gong-chinese.mp3");
+                        const testFile = sound.id === "gong-1" 
+                          ? require("@/assets/sounds/gong-1.mp3")
+                          : sound.id === "gong-2"
+                          ? require("@/assets/sounds/gong-2.mp3")
+                          : require("@/assets/sounds/gong-3.mp3");
                         const { sound: testSound } = await Audio.Sound.createAsync(testFile);
                         await testSound.setVolumeAsync(1.0); // Maximum volume
                         await testSound.playAsync();

@@ -115,3 +115,8 @@
 
 ## Bug Fixes (v1.7.1)
 - [x] Fix "Save Entry" button being covered by keyboard on mobile
+
+## Bug Fixes & Updates (v1.8)
+- [x] Fix "Save Entry" button still being covered by keyboard (advanced solution needed)
+- [x] Replace gong sounds with authentic MP3 files provided by user
+- [x] Update gong type labels to match new sound files
