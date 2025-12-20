@@ -448,9 +448,22 @@ export default function TimerScreen() {
                         borderColor: gongSound === sound.id ? themeColors.tintSecondary : colors.border,
                       },
                     ]}
-                    onPress={() => {
+                    onPress={async () => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setGongSound(sound.id);
+                      // Test play the selected gong
+                      try {
+                        const testFile = sound.id === "tibetan" 
+                          ? require("@/assets/sounds/gong-tibetan.mp3")
+                          : sound.id === "japanese"
+                          ? require("@/assets/sounds/gong-japanese.mp3")
+                          : require("@/assets/sounds/gong-chinese.mp3");
+                        const { sound: testSound } = await Audio.Sound.createAsync(testFile);
+                        await testSound.playAsync();
+                        setTimeout(() => testSound.unloadAsync(), 3000);
+                      } catch (error) {
+                        console.error("Error playing test gong:", error);
+                      }
                     }}
                   >
                     <ThemedText

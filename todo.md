@@ -97,3 +97,8 @@
 - [x] Fix gong sounds not playing - download real gong audio files from internet
 - [x] Remove theme selector - fix purple theme throughout entire app
 - [x] Fix reminder time display - increase vertical space to show full time
+
+## Bug Fixes (v1.6.1)
+- [x] Fix gong sounds not playing when clicking on gong type options
+- [x] Fix date showing as yesterday when clicking today's date in calendar
+- [x] Fix splash screen white background - change to dark color

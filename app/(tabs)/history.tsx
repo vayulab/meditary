@@ -11,6 +11,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useData } from "@/contexts/data-context";
+import { parseLocalDate } from "@/lib/date-utils";
 
 const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEKDAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -99,9 +100,11 @@ export default function HistoryScreen() {
       // Multiple events - show alert with list
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const message = [
-        ...dayEntries.map((e, i) => 
-          `${i + 1}. ${language === "pt" ? "Registro" : "Entry"} (${new Date(e.timestamp).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" })})`
-        ),
+        ...dayEntries.map((e, i) => {
+          const entryDate = parseLocalDate(e.date);
+          const time = new Date(e.timestamp).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+          return `${i + 1}. ${language === "pt" ? "Registro" : "Entry"} (${time})`;
+        }),
         ...daySessions.map((s, i) => 
           `${dayEntries.length + i + 1}. ${language === "pt" ? "Timer" : "Timer"} (${s.durationMinutes} min)`
         ),
