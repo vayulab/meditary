@@ -107,3 +107,11 @@
 - [x] Fix gong sound volume - too low even at maximum
 - [x] Fix date display bug - still showing yesterday instead of today (complete code scan needed)
 - [x] Fix splash screen - still showing white background with unreadable white text
+
+## New Features & Fixes (v1.7)
+- [x] Download and integrate authentic Tibetan bell/gong sound recordings
+- [x] Fix push notifications to follow selected language (PT-BR/EN)
+- [x] Validate total meditation minutes calculation implementation
+
+## Bug Fixes (v1.7.1)
+- [x] Fix "Save Entry" button being covered by keyboard on mobile

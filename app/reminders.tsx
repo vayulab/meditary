@@ -61,6 +61,13 @@ export default function RemindersScreen() {
     checkPermissions();
   }, []);
 
+  // Reschedule notification when language changes
+  useEffect(() => {
+    if (reminder.enabled) {
+      scheduleNotification(reminder);
+    }
+  }, [language]);
+
   const loadReminderSettings = async () => {
     try {
       const stored = await AsyncStorage.getItem(REMINDER_STORAGE_KEY);
