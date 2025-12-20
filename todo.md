@@ -102,3 +102,8 @@
 - [x] Fix gong sounds not playing when clicking on gong type options
 - [x] Fix date showing as yesterday when clicking today's date in calendar
 - [x] Fix splash screen white background - change to dark color
+
+## Bug Fixes (v1.6.2)
+- [x] Fix gong sound volume - too low even at maximum
+- [x] Fix date display bug - still showing yesterday instead of today (complete code scan needed)
+- [x] Fix splash screen - still showing white background with unreadable white text

@@ -100,12 +100,15 @@ export default function TimerScreen() {
           : require("@/assets/sounds/gong-chinese.mp3");
         
         const { sound: startSound } = await Audio.Sound.createAsync(gongSoundFile);
+        await startSound.setVolumeAsync(1.0); // Maximum volume
         startSoundRef.current = startSound;
 
         const { sound: intervalSound } = await Audio.Sound.createAsync(gongSoundFile);
+        await intervalSound.setVolumeAsync(1.0); // Maximum volume
         intervalSoundRef.current = intervalSound;
 
         const { sound: endSound } = await Audio.Sound.createAsync(gongSoundFile);
+        await endSound.setVolumeAsync(1.0); // Maximum volume
         endSoundRef.current = endSound;
       } catch (error) {
         console.error("Error loading sounds:", error);
@@ -459,6 +462,7 @@ export default function TimerScreen() {
                           ? require("@/assets/sounds/gong-japanese.mp3")
                           : require("@/assets/sounds/gong-chinese.mp3");
                         const { sound: testSound } = await Audio.Sound.createAsync(testFile);
+                        await testSound.setVolumeAsync(1.0); // Maximum volume
                         await testSound.playAsync();
                         setTimeout(() => testSound.unloadAsync(), 3000);
                       } catch (error) {

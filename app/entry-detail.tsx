@@ -19,6 +19,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useData } from "@/contexts/data-context";
+import { parseLocalDate } from "@/lib/date-utils";
 import { MeditationEntry, Answer } from "@/constants/data";
 
 export default function EntryDetailScreen() {
@@ -66,7 +67,7 @@ export default function EntryDetailScreen() {
   }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
     const options: Intl.DateTimeFormatOptions = {
       weekday: "long",
       day: "numeric",
