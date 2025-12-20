@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import Constants from "expo-constants";
 import React from "react";
 import { View, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -166,7 +167,7 @@ export default function SettingsScreen() {
               <ThemedText style={[styles.infoLabel, { color: colors.textSecondary }]}>
                 {t("settingsVersion")}
               </ThemedText>
-              <ThemedText style={styles.infoValue}>1.0.0</ThemedText>
+              <ThemedText style={styles.infoValue}>{Constants.expoConfig?.version || "1.4.0"}</ThemedText>
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             <View style={styles.infoRow}>

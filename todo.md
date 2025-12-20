@@ -78,3 +78,13 @@
 ## New Features (v1.4)
 - [x] Add ambient sounds to timer (rain, forest, ocean, etc.) with selection option
 - [x] Remove export data functionality from settings
+
+## Bug Fixes (v1.5)
+- [x] Fix date storage - saving previous day instead of current day (timezone issue)
+- [x] Fix calendar to show all events when multiple meditations on same day
+- [x] Fix splash screen text color - make it dark/visible
+- [x] Remove ambient sounds feature completely
+- [x] Add real gong sounds with selection options
+- [x] Fix reminders time display - font too large
+- [x] Fix app version display - still showing 1.0.0 instead of current version
+- [x] Fix theme colors not applying to all button components

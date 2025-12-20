@@ -13,6 +13,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useData } from "@/contexts/data-context";
+import { getLocalDateString } from "@/lib/date-utils";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function HomeScreen() {
   const { colors: themeColors } = useAppTheme();
 
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(today);
   const todayEntry = getEntryByDate(todayStr);
   const streak = getStreak();
   

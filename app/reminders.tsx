@@ -375,12 +375,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timeValue: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
   timeSeparator: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: "700",
   },
   timeHint: {

@@ -16,6 +16,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useData } from "@/contexts/data-context";
+import { getLocalDateString } from "@/lib/date-utils";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CHART_WIDTH = SCREEN_WIDTH - Spacing.md * 2 - Spacing.md * 2;
@@ -89,12 +90,12 @@ export default function ProgressScreen() {
     // Calculate streak
     let currentStreak = 0;
     const sortedDates = [...new Set(entries.map(e => e.date))].sort().reverse();
-    const today = new Date().toISOString().split("T")[0];
+    const today = getLocalDateString();
     
     for (let i = 0; i < sortedDates.length; i++) {
       const expectedDate = new Date();
       expectedDate.setDate(expectedDate.getDate() - i);
-      const expectedStr = expectedDate.toISOString().split("T")[0];
+      const expectedStr = getLocalDateString(expectedDate);
       
       if (sortedDates.includes(expectedStr)) {
         currentStreak++;
@@ -116,7 +117,7 @@ export default function ProgressScreen() {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
+        const dateStr = getLocalDateString(date);
         const dayEntries = filteredEntries.filter(e => e.date === dateStr);
         
         const dayNames = language === "pt" 
@@ -145,7 +146,7 @@ export default function ProgressScreen() {
         data.push({
           label: language === "pt" ? `Sem ${4 - week}` : `Wk ${4 - week}`,
           value: weekEntries.length,
-          date: weekStart.toISOString().split("T")[0],
+          date: getLocalDateString(weekStart),
         });
       }
     } else {
@@ -185,7 +186,7 @@ export default function ProgressScreen() {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
+        const dateStr = getLocalDateString(date);
         const dayEntries = filteredEntries.filter(e => e.date === dateStr);
         
         let avgConc = 0;

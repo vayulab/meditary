@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { View, ScrollView, Pressable, StyleSheet, FlatList } from "react-native";
+import { View, ScrollView, Pressable, StyleSheet, FlatList, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -64,27 +64,60 @@ export default function HistoryScreen() {
     return days;
   };
 
+  const getEventsCountForDay = (day: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const entriesCount = monthEntries.filter(e => e.date === dateStr).length;
+    const sessionsCount = monthSessions.filter(s => s.date === dateStr).length;
+    return entriesCount + sessionsCount;
+  };
+
   const hasEntryOnDay = (day: number) => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const hasEntry = monthEntries.some(e => e.date === dateStr);
-    const hasSession = monthSessions.some(s => s.date === dateStr);
-    return hasEntry || hasSession;
+    return getEventsCountForDay(day) > 0;
   };
 
-  const getEntryForDay = (day: number) => {
+  const getAllEntriesForDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return monthEntries.find(e => e.date === dateStr);
+    return monthEntries.filter(e => e.date === dateStr);
   };
 
-  const getSessionForDay = (day: number) => {
+  const getAllSessionsForDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return monthSessions.find(s => s.date === dateStr);
+    return monthSessions.filter(s => s.date === dateStr);
   };
 
   const handleDayPress = (day: number) => {
-    const entry = getEntryForDay(day);
-    if (entry) {
-      router.push({ pathname: "/entry-detail" as any, params: { id: entry.id } });
+    const dayEntries = getAllEntriesForDay(day);
+    const daySessions = getAllSessionsForDay(day);
+    const totalEvents = dayEntries.length + daySessions.length;
+
+    if (totalEvents === 0) return;
+
+    if (totalEvents === 1 && dayEntries.length === 1) {
+      // Single entry - navigate directly
+      router.push({ pathname: "/entry-detail" as any, params: { id: dayEntries[0].id } });
+    } else {
+      // Multiple events - show alert with list
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const message = [
+        ...dayEntries.map((e, i) => 
+          `${i + 1}. ${language === "pt" ? "Registro" : "Entry"} (${new Date(e.timestamp).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" })})`
+        ),
+        ...daySessions.map((s, i) => 
+          `${dayEntries.length + i + 1}. ${language === "pt" ? "Timer" : "Timer"} (${s.durationMinutes} min)`
+        ),
+      ].join("\n");
+
+      Alert.alert(
+        `${day}/${month + 1}/${year}`,
+        message,
+        [
+          ...dayEntries.map((e, i) => ({
+            text: `${language === "pt" ? "Ver" : "View"} #${i + 1}`,
+            onPress: () => router.push({ pathname: "/entry-detail" as any, params: { id: e.id } }),
+          })),
+          { text: language === "pt" ? "Fechar" : "Close", style: "cancel" },
+        ]
+      );
     }
   };
 
@@ -186,6 +219,13 @@ export default function HistoryScreen() {
                     >
                       {day}
                     </ThemedText>
+                    {getEventsCountForDay(day) > 1 && (
+                      <View style={styles.countBadge}>
+                        <ThemedText style={styles.countBadgeText}>
+                          {getEventsCountForDay(day)}
+                        </ThemedText>
+                      </View>
+                    )}
                   </View>
                 )}
               </Pressable>
@@ -294,6 +334,23 @@ const styles = StyleSheet.create({
   dayText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+  countBadge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  countBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: Colors.light.tint,
   },
   summaryCard: {
     padding: Spacing.md,

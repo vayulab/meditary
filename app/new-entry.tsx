@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { QuestionCard } from "@/components/question-card";
+import { getLocalDateString } from "@/lib/date-utils";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -36,7 +37,7 @@ export default function NewEntryScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(today);
 
   const formatDate = () => {
     const options: Intl.DateTimeFormatOptions = {
