@@ -92,19 +92,20 @@ export default function TimerScreen() {
           staysActiveInBackground: true,
         });
 
-        const { sound: startSound } = await Audio.Sound.createAsync(
-          require("@/assets/sounds/bell-start.mp3")
-        );
+        // Load gong sounds based on selected type
+        const gongSoundFile = gongSound === "tibetan" 
+          ? require("@/assets/sounds/gong-tibetan.mp3")
+          : gongSound === "japanese"
+          ? require("@/assets/sounds/gong-japanese.mp3")
+          : require("@/assets/sounds/gong-chinese.mp3");
+        
+        const { sound: startSound } = await Audio.Sound.createAsync(gongSoundFile);
         startSoundRef.current = startSound;
 
-        const { sound: intervalSound } = await Audio.Sound.createAsync(
-          require("@/assets/sounds/bell-interval.mp3")
-        );
+        const { sound: intervalSound } = await Audio.Sound.createAsync(gongSoundFile);
         intervalSoundRef.current = intervalSound;
 
-        const { sound: endSound } = await Audio.Sound.createAsync(
-          require("@/assets/sounds/bell-end.mp3")
-        );
+        const { sound: endSound } = await Audio.Sound.createAsync(gongSoundFile);
         endSoundRef.current = endSound;
       } catch (error) {
         console.error("Error loading sounds:", error);
@@ -119,7 +120,7 @@ export default function TimerScreen() {
       endSoundRef.current?.unloadAsync();
 
     };
-  }, []);
+  }, [gongSound]);
 
   // Play bell sound (start/end)
   const playBellSound = useCallback(async (type: "start" | "end" | "interval" = "start") => {

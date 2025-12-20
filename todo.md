@@ -92,3 +92,8 @@
 ## Bug Fixes (v1.5.1)
 - [x] Fix history entry date display - showing 1 day before (timezone issue with new Date())
 - [x] Fix splash screen - text still appears light/unclear
+
+## Bug Fixes & Changes (v1.6)
+- [x] Fix gong sounds not playing - download real gong audio files from internet
+- [x] Remove theme selector - fix purple theme throughout entire app
+- [x] Fix reminder time display - increase vertical space to show full time

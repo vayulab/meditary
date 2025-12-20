@@ -86,33 +86,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeColor, setThemeColorState] = useState<ThemeColor>("purple");
-  const [isLoading, setIsLoading] = useState(true);
+  // Fixed to purple theme only
+  const themeColor: ThemeColor = "purple";
+  const isLoading = false;
 
-  useEffect(() => {
-    loadTheme();
-  }, []);
-
-  const loadTheme = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-      if (stored && stored in THEME_PALETTES) {
-        setThemeColorState(stored as ThemeColor);
-      }
-    } catch (error) {
-      console.error("Error loading theme:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // No-op function for compatibility
   const setThemeColor = async (color: ThemeColor) => {
-    try {
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, color);
-      setThemeColorState(color);
-    } catch (error) {
-      console.error("Error saving theme:", error);
-    }
+    // Theme is fixed to purple, do nothing
   };
 
   const colors = THEME_PALETTES[themeColor];

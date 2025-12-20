@@ -365,7 +365,9 @@ const styles = StyleSheet.create({
   },
   timeColumn: {
     alignItems: "center",
-    gap: Spacing.sm,
+    gap: Spacing.lg,
+    minHeight: 160,
+    justifyContent: "center",
   },
   timeButton: {
     width: 48,
@@ -375,13 +377,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   timeValue: {
-    fontSize: 32,
+    fontSize: 48,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
+    lineHeight: 56,
   },
   timeSeparator: {
-    fontSize: 32,
+    fontSize: 48,
     fontWeight: "700",
+    lineHeight: 56,
   },
   timeHint: {
     fontSize: 14,
