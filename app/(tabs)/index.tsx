@@ -13,7 +13,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useData } from "@/contexts/data-context";
-import { getLocalDateString } from "@/lib/date-utils";
+import { getLocalDateString, parseLocalDate } from "@/lib/date-utils";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function HomeScreen() {
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
   const monthEntries = entries.filter(e => {
-    const d = new Date(e.date);
+    const d = parseLocalDate(e.date);
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
   });
 

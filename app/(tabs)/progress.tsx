@@ -16,7 +16,7 @@ import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useData } from "@/contexts/data-context";
-import { getLocalDateString } from "@/lib/date-utils";
+import { getLocalDateString, parseLocalDate } from "@/lib/date-utils";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const CHART_WIDTH = SCREEN_WIDTH - Spacing.md * 2 - Spacing.md * 2;
@@ -76,7 +76,7 @@ export default function ProgressScreen() {
     }
 
     return entries.filter(entry => {
-      const entryDate = new Date(entry.date);
+      const entryDate = parseLocalDate(entry.date);
       return entryDate >= startDate && entryDate <= today;
     });
   }, [entries, timeRange, dateRanges]);
@@ -139,7 +139,7 @@ export default function ProgressScreen() {
         weekStart.setDate(weekEnd.getDate() - 6);
         
         const weekEntries = filteredEntries.filter(e => {
-          const entryDate = new Date(e.date);
+          const entryDate = parseLocalDate(e.date);
           return entryDate >= weekStart && entryDate <= weekEnd;
         });
         
@@ -158,7 +158,7 @@ export default function ProgressScreen() {
         const year = monthDate.getFullYear();
         
         const monthEntries = filteredEntries.filter(e => {
-          const entryDate = new Date(e.date);
+          const entryDate = parseLocalDate(e.date);
           return entryDate.getMonth() === month && entryDate.getFullYear() === year;
         });
         

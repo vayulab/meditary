@@ -3,6 +3,7 @@ import { Pressable, StyleSheet } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { parseLocalDate } from "@/lib/date-utils";
 import { MeditationEntry } from "@/constants/data";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -19,7 +20,7 @@ export function EntryCard({ entry, onPress }: EntryCardProps) {
   const { language } = useLanguage();
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
     const options: Intl.DateTimeFormatOptions = {
       weekday: "short",
       day: "numeric",

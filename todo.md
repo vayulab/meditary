@@ -88,3 +88,7 @@
 - [x] Fix reminders time display - font too large
 - [x] Fix app version display - still showing 1.0.0 instead of current version
 - [x] Fix theme colors not applying to all button components
+
+## Bug Fixes (v1.5.1)
+- [x] Fix history entry date display - showing 1 day before (timezone issue with new Date())
+- [x] Fix splash screen - text still appears light/unclear
