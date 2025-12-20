@@ -361,17 +361,16 @@ export default function ProgressScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: Math.max(insets.top, 20) + Spacing.md },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={{ paddingTop: Math.max(insets.top, 20) }}>
         <ThemedText style={styles.title}>
           {language === "pt" ? "Progresso" : "Progress"}
         </ThemedText>
+      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Time Range Selector */}
         <View style={[styles.segmentedControl, { backgroundColor: colors.surface }]}>

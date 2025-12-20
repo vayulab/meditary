@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -114,12 +116,14 @@ export default function NewEntryScreen() {
           <View style={styles.headerSpacer} />
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+          >
           {/* Date Display */}
           <View style={styles.dateSection}>
             <IconSymbol name="calendar" size={20} color={colors.tint} />
@@ -162,7 +166,8 @@ export default function NewEntryScreen() {
               textAlignVertical="top"
             />
           </View>
-        </ScrollView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
 
         {/* Save Button */}
         <View 
@@ -227,7 +232,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.md,
-    paddingBottom: 200, // Extra padding to ensure save button is visible above keyboard
+    paddingBottom: 30, // Small padding to keep button close to keyboard
   },
   dateSection: {
     flexDirection: "row",

@@ -68,8 +68,8 @@ export default function HistoryScreen() {
   const getEventsCountForDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const entriesCount = monthEntries.filter(e => e.date === dateStr).length;
-    const sessionsCount = monthSessions.filter(s => s.date === dateStr).length;
-    return entriesCount + sessionsCount;
+    // Only count diary entries, not timer sessions
+    return entriesCount;
   };
 
   const hasEntryOnDay = (day: number) => {
@@ -88,27 +88,22 @@ export default function HistoryScreen() {
 
   const handleDayPress = (day: number) => {
     const dayEntries = getAllEntriesForDay(day);
-    const daySessions = getAllSessionsForDay(day);
-    const totalEvents = dayEntries.length + daySessions.length;
+    // Only show diary entries, not timer sessions
+    const totalEvents = dayEntries.length;
 
     if (totalEvents === 0) return;
 
-    if (totalEvents === 1 && dayEntries.length === 1) {
+    if (totalEvents === 1) {
       // Single entry - navigate directly
       router.push({ pathname: "/entry-detail" as any, params: { id: dayEntries[0].id } });
     } else {
-      // Multiple events - show alert with list
+      // Multiple entries - show alert with list
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const message = [
-        ...dayEntries.map((e, i) => {
-          const entryDate = parseLocalDate(e.date);
-          const time = new Date(e.timestamp).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
-          return `${i + 1}. ${language === "pt" ? "Registro" : "Entry"} (${time})`;
-        }),
-        ...daySessions.map((s, i) => 
-          `${dayEntries.length + i + 1}. ${language === "pt" ? "Timer" : "Timer"} (${s.durationMinutes} min)`
-        ),
-      ].join("\n");
+      const message = dayEntries.map((e, i) => {
+        const entryDate = parseLocalDate(e.date);
+        const time = new Date(e.timestamp).toLocaleTimeString(language === "pt" ? "pt-BR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+        return `${i + 1}. ${language === "pt" ? "Registro" : "Entry"} (${time})`;
+      }).join("\n");
 
       Alert.alert(
         `${day}/${month + 1}/${year}`,
@@ -137,7 +132,7 @@ export default function HistoryScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) + Spacing.md }]}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20), paddingBottom: Spacing.md }]}>
         <ThemedText style={styles.title}>{t("historyTitle")}</ThemedText>
         
         {/* View Toggle */}

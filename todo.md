@@ -120,3 +120,10 @@
 - [x] Fix "Save Entry" button still being covered by keyboard (advanced solution needed)
 - [x] Replace gong sounds with authentic MP3 files provided by user
 - [x] Update gong type labels to match new sound files
+
+## Bug Fixes (v1.8.1)
+- [x] Fix "Save Entry" button positioning - too high, should be closer to keyboard
+- [x] Add keyboard dismiss gesture - swipe down to close keyboard
+- [x] Fix "Progresso" title cutoff - P is being cut at top
+- [x] Fix "Histórico" title cutoff - H is being cut at top
+- [x] Fix calendar to exclude timer sessions from count (show only diary entries)
