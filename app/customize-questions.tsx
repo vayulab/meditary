@@ -218,18 +218,18 @@ export default function CustomizeQuestionsScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
+            ListFooterComponent={
+              <Pressable
+                style={[styles.addButton, { borderColor: colors.tint }]}
+                onPress={handleAddQuestion}
+              >
+                <IconSymbol name="plus" size={24} color={colors.tint} />
+                <ThemedText style={[styles.addButtonText, { color: colors.tint }]}>
+                  {t("customizeAdd")}
+                </ThemedText>
+              </Pressable>
+            }
           />
-
-          {/* Add Question Button */}
-          <Pressable
-            style={[styles.addButton, { borderColor: colors.tint }]}
-            onPress={handleAddQuestion}
-          >
-            <IconSymbol name="plus" size={24} color={colors.tint} />
-            <ThemedText style={[styles.addButtonText, { color: colors.tint }]}>
-              {t("customizeAdd")}
-            </ThemedText>
-          </Pressable>
         </View>
 
         {/* Edit Modal */}

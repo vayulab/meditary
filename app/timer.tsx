@@ -30,7 +30,7 @@ import { useAppTheme } from "@/contexts/theme-context";
 import { useData } from "@/contexts/data-context";
 import { getLocalDateString } from "@/lib/date-utils";
 
-const TIMER_PRESETS = [5, 10, 15, 20, 30, 45, 60];
+const TIMER_PRESETS = [10, 15, 20, 30, 45, 60, 70, 80, 90];
 const INTERVAL_PRESETS = [0, 5, 10, 15, 20, 30]; // 0 = off
 const GONG_SOUNDS = [
   { id: "gong-1", labelEn: "Notification Bell", labelPt: "Sino de Notificação" },
@@ -248,28 +248,83 @@ export default function TimerScreen() {
 
   const handleStop = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      language === "pt" ? "Parar Meditação?" : "Stop Meditation?",
-      language === "pt" 
-        ? "Tem certeza que deseja parar a meditação?"
-        : "Are you sure you want to stop the meditation?",
-      [
-        { text: language === "pt" ? "Cancelar" : "Cancel", style: "cancel" },
-        {
-          text: language === "pt" ? "Parar" : "Stop",
-          style: "destructive",
-          onPress: async () => {
-            setIsRunning(false);
-            setIsPaused(false);
-            setShowPresets(true);
-            setTimeRemaining(duration * 60);
-            lastGongTimeRef.current = 0;
-            
-
+    
+    // Calculate elapsed time
+    const elapsedSeconds = duration * 60 - timeRemaining;
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+    
+    // If at least 10 minutes, offer to save
+    if (elapsedMinutes >= 10) {
+      Alert.alert(
+        language === "pt" ? "Salvar Meditação?" : "Save Meditation?",
+        language === "pt" 
+          ? `Você meditou por ${elapsedMinutes} minutos. Deseja salvar?`
+          : `You meditated for ${elapsedMinutes} minutes. Save it?`,
+        [
+          { 
+            text: language === "pt" ? "Não Salvar" : "Don't Save", 
+            style: "cancel",
+            onPress: () => {
+              // Just reset timer
+              setIsRunning(false);
+              setIsPaused(false);
+              setShowPresets(true);
+              setTimeRemaining(duration * 60);
+              lastGongTimeRef.current = 0;
+            }
           },
-        },
-      ]
-    );
+          {
+            text: language === "pt" ? "Salvar" : "Save",
+            onPress: async () => {
+              // Save session with elapsed time
+              await addSession({
+                date: getLocalDateString(),
+                timestamp: Date.now(),
+                durationMinutes: elapsedMinutes,
+                hasEntry: false,
+              });
+              
+              // Reset timer
+              setIsRunning(false);
+              setIsPaused(false);
+              setShowPresets(true);
+              setTimeRemaining(duration * 60);
+              lastGongTimeRef.current = 0;
+              
+              // Show success message
+              Alert.alert(
+                language === "pt" ? "Salvo!" : "Saved!",
+                language === "pt" 
+                  ? "Meditação salva com sucesso."
+                  : "Meditation saved successfully."
+              );
+            },
+          },
+        ]
+      );
+    } else {
+      // Less than 10 minutes, just confirm stop
+      Alert.alert(
+        language === "pt" ? "Parar Meditação?" : "Stop Meditation?",
+        language === "pt" 
+          ? "Tem certeza que deseja parar a meditação?"
+          : "Are you sure you want to stop the meditation?",
+        [
+          { text: language === "pt" ? "Cancelar" : "Cancel", style: "cancel" },
+          {
+            text: language === "pt" ? "Parar" : "Stop",
+            style: "destructive",
+            onPress: () => {
+              setIsRunning(false);
+              setIsPaused(false);
+              setShowPresets(true);
+              setTimeRemaining(duration * 60);
+              lastGongTimeRef.current = 0;
+            },
+          },
+        ]
+      );
+    }
   };
 
   const handlePresetSelect = (minutes: number) => {

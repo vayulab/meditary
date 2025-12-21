@@ -135,3 +135,10 @@
 
 ## Bug Fixes (v1.8.4)
 - [x] Fix "Ajustes" title cutoff - A is being cut at top (added paddingTop: 8 and lineHeight: 36)
+
+## Bug Fixes (v1.8.5)
+- [ ] Fix Progress charts showing only 1 meditation when user has 2 entries
+- [x] Fix home screen streak counter - counting total meditations instead of consecutive days
+- [x] Restore "Add new question" option in Settings > Customize Questions
+- [x] Timer durations: remove 5 min, add 70, 80, 90 min options
+- [x] Timer: allow saving meditation if at least 10 minutes completed (even if stopped early)

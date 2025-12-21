@@ -11,6 +11,7 @@ import {
   DEFAULT_QUESTIONS, 
   STORAGE_KEYS 
 } from "@/constants/data";
+import { getLocalDateString } from "@/lib/date-utils";
 
 interface DataContextType {
   entries: MeditationEntry[];
@@ -179,27 +180,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getStreak = useCallback((): number => {
     if (entries.length === 0) return 0;
     
-    const sortedEntries = [...entries].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    // Get unique dates and sort them in descending order
+    const uniqueDates = [...new Set(entries.map(e => e.date))].sort().reverse();
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayStr = getLocalDateString(today);
     
     let streak = 0;
-    let currentDate = today;
+    let checkDate = new Date(today);
     
-    for (const entry of sortedEntries) {
-      const entryDate = new Date(entry.date);
-      entryDate.setHours(0, 0, 0, 0);
+    // Check if there's a meditation today or yesterday to start counting
+    const hasToday = uniqueDates.includes(todayStr);
+    if (!hasToday) {
+      // If no meditation today, check yesterday
+      checkDate.setDate(checkDate.getDate() - 1);
+      const yesterdayStr = getLocalDateString(checkDate);
+      if (!uniqueDates.includes(yesterdayStr)) {
+        return 0; // No streak if no meditation today or yesterday
+      }
+    }
+    
+    // Count consecutive days
+    for (let i = 0; i < uniqueDates.length; i++) {
+      const expectedStr = getLocalDateString(checkDate);
       
-      const diffDays = Math.floor((currentDate.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === 0 || diffDays === 1) {
+      if (uniqueDates[i] === expectedStr) {
         streak++;
-        currentDate = entryDate;
-      } else if (diffDays > 1) {
-        break;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break; // Gap found, stop counting
       }
     }
     
