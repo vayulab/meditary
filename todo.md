@@ -142,3 +142,6 @@
 - [x] Restore "Add new question" option in Settings > Customize Questions
 - [x] Timer durations: remove 5 min, add 70, 80, 90 min options
 - [x] Timer: allow saving meditation if at least 10 minutes completed (even if stopped early)
+
+## Enhancement (v1.8.6)
+- [x] Progress tab: convert total minutes to hours format when >= 60 minutes

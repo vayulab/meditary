@@ -424,10 +424,16 @@ export default function ProgressScreen() {
           <ThemedView style={[styles.statCard, { backgroundColor: colors.surface }]}>
             <IconSymbol name="timer" size={24} color="#34C759" />
             <ThemedText style={styles.statValue}>
-              {stats.totalMinutes}
+              {stats.totalMinutes >= 60 
+                ? `${Math.floor(stats.totalMinutes / 60)}h ${stats.totalMinutes % 60}min`
+                : stats.totalMinutes
+              }
             </ThemedText>
             <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {language === "pt" ? "Minutos totais" : "Total minutes"}
+              {stats.totalMinutes >= 60
+                ? (language === "pt" ? "Tempo total" : "Total time")
+                : (language === "pt" ? "Minutos totais" : "Total minutes")
+              }
             </ThemedText>
           </ThemedView>
           
