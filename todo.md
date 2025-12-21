@@ -129,6 +129,6 @@
 - [x] Fix calendar to exclude timer sessions from count (show only diary entries)
 
 ## Bug Fixes (v1.8.2)
-- [x] Fix "Salvar Registro" button - still too high, large gap between button and keyboard
-- [x] Fix "Progresso" title - P still cut off at top
-- [x] Fix "Histórico" title - H still cut off at top
+- [x] Fix "Salvar Registro" button - still too high, large gap between button and keyboard (reduced keyboardVerticalOffset to 50)
+- [x] Fix "Progresso" title - P still cut off at top (added paddingTop: 8 and lineHeight: 36)
+- [x] Fix "Histórico" title - H still cut off at top (added paddingTop: 8 and lineHeight: 36)

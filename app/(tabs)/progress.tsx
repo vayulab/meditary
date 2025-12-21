@@ -492,6 +492,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     marginBottom: Spacing.lg,
+    paddingTop: 8,
+    lineHeight: 36,
   },
   segmentedControl: {
     flexDirection: "row",

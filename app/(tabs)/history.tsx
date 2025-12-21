@@ -276,6 +276,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "700",
+    paddingTop: 8,
+    lineHeight: 36,
   },
   viewToggle: {
     flexDirection: "row",
