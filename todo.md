@@ -132,3 +132,6 @@
 - [x] Fix "Salvar Registro" button - still too high, large gap between button and keyboard (reduced keyboardVerticalOffset to 50)
 - [x] Fix "Progresso" title - P still cut off at top (added paddingTop: 8 and lineHeight: 36)
 - [x] Fix "Histórico" title - H still cut off at top (added paddingTop: 8 and lineHeight: 36)
+
+## Bug Fixes (v1.8.4)
+- [x] Fix "Ajustes" title cutoff - A is being cut at top (added paddingTop: 8 and lineHeight: 36)
