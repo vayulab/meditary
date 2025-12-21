@@ -361,7 +361,7 @@ export default function ProgressScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={{ paddingTop: Math.max(insets.top, 20) }}>
+      <View style={{ paddingTop: Math.max(insets.top + 10, 30), paddingHorizontal: Spacing.md }}>
         <ThemedText style={styles.title}>
           {language === "pt" ? "Progresso" : "Progress"}
         </ThemedText>

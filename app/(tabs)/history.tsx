@@ -132,7 +132,7 @@ export default function HistoryScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20), paddingBottom: Spacing.md }]}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top + 10, 30), paddingBottom: Spacing.md }]}>
         <ThemedText style={styles.title}>{t("historyTitle")}</ThemedText>
         
         {/* View Toggle */}

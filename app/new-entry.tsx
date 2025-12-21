@@ -174,7 +174,7 @@ export default function NewEntryScreen() {
           style={[
             styles.footer, 
             { 
-              paddingBottom: Math.max(insets.bottom, 20),
+              paddingBottom: Math.max(insets.bottom, 8),
               backgroundColor: colors.background,
             }
           ]}
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.md,
-    paddingBottom: 30, // Small padding to keep button close to keyboard
+    paddingBottom: 0, // No padding to keep button right above keyboard
   },
   dateSection: {
     flexDirection: "row",
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
+    paddingTop: 8,
   },
   saveButton: {
     paddingVertical: Spacing.md,
