@@ -377,6 +377,5 @@ O aplicativo **Meditary** foi completamente desenvolvido e validado com sucesso.
 
 ---
 
-**Desenvolvido por:** Manus AI  
 **Data de Validação:** 19/12/2025  
 **Versão do App:** 1.3
