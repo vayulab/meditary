@@ -2,13 +2,13 @@
 import "./scripts/load-env.js";
 import type { ExpoConfig } from "expo/config";
 
-// Bundle ID format: space.manus.<project_name_dots>.<timestamp>
-// e.g., "my-app" created at 2024-01-15 10:30:45 -> "space.manus.my.app.t20240115103045"
-const bundleId = "space.manus.meditary.t20251218184446";
-// Extract timestamp from bundle ID and prefix with "manus" for deep link scheme
-// e.g., "space.manus.my.app.t20240115103045" -> "manus20240115103045"
+// Bundle ID format: space.hanulab.<project_name_dots>.<timestamp>
+// e.g., "my-app" created at 2024-01-15 10:30:45 -> "space.hanulab.my.app.t20240115103045"
+const bundleId = "space.hanulab.meditary.t20251218184446";
+// Extract timestamp from bundle ID and prefix with "hanulab" for deep link scheme
+// e.g., "space.hanulab.my.app.t20240115103045" -> "hanulab20240115103045"
 const timestamp = bundleId.split(".").pop()?.replace(/^t/, "") ?? "";
-const schemeFromBundleId = `manus${timestamp}`;
+const schemeFromBundleId = `hanulab${timestamp}`;
 
 const env = {
   // App branding - update these values directly (do not use env vars)
@@ -16,7 +16,7 @@ const env = {
   appSlug: 'meditary',
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: 'https://files.manuscdn.com/user_upload_by_module/session_file/100643026/iAqVguiLrEkEtCBL.png',
+  logoUrl: '',
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
@@ -25,7 +25,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.5.0",
+  version: "1.8.6",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,

@@ -258,8 +258,8 @@ export default function TimerScreen() {
       Alert.alert(
         language === "pt" ? "Salvar Meditação?" : "Save Meditation?",
         language === "pt" 
-          ? `Você meditou por ${elapsedMinutes} minutos. Deseja salvar?`
-          : `You meditated for ${elapsedMinutes} minutes. Save it?`,
+          ? `Você meditou por ${elapsedMinutes} minutos. Deseja salvar e registrar?`
+          : `You meditated for ${elapsedMinutes} minutes. Save and log entry?`,
         [
           { 
             text: language === "pt" ? "Não Salvar" : "Don't Save", 
@@ -274,7 +274,26 @@ export default function TimerScreen() {
             }
           },
           {
-            text: language === "pt" ? "Salvar" : "Save",
+            text: language === "pt" ? "Apenas Salvar" : "Just Save",
+            onPress: async () => {
+              // Save session with elapsed time
+              await addSession({
+                date: getLocalDateString(),
+                timestamp: Date.now(),
+                durationMinutes: elapsedMinutes,
+                hasEntry: false,
+              });
+              
+              // Reset timer
+              setIsRunning(false);
+              setIsPaused(false);
+              setShowPresets(true);
+              setTimeRemaining(duration * 60);
+              lastGongTimeRef.current = 0;
+            },
+          },
+          {
+            text: language === "pt" ? "Salvar e Registrar" : "Save & Log",
             onPress: async () => {
               // Save session with elapsed time
               await addSession({
@@ -291,13 +310,8 @@ export default function TimerScreen() {
               setTimeRemaining(duration * 60);
               lastGongTimeRef.current = 0;
               
-              // Show success message
-              Alert.alert(
-                language === "pt" ? "Salvo!" : "Saved!",
-                language === "pt" 
-                  ? "Meditação salva com sucesso."
-                  : "Meditation saved successfully."
-              );
+              // Navigate to entry form
+              router.push("/new-entry" as any);
             },
           },
         ]

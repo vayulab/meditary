@@ -96,7 +96,7 @@ export default function NewEntryScreen() {
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
+        keyboardVerticalOffset={0}
       >
         {/* Header */}
         <View 
@@ -119,7 +119,10 @@ export default function NewEntryScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: 200 + Math.max(insets.bottom, 8) }
+            ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
@@ -232,7 +235,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.md,
-    paddingBottom: 0, // No padding to keep button right above keyboard
   },
   dateSection: {
     flexDirection: "row",
