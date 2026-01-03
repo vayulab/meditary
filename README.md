@@ -186,9 +186,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-**Diego Mariano** - [@diegom4riano](https://github.com/diegom4riano) - diegocampos.br@gmail.com
+**Vayulab** - [@vayulab](https://github.com/vayulab) - diego@vayulab.io
 
-**Project Link**: [https://github.com/diegom4riano/meditary](https://github.com/diegom4riano/meditary)
+**Project Link**: [https://github.com/vayulab/meditary](https://github.com/vayulab/meditary)
 
 ---
 
