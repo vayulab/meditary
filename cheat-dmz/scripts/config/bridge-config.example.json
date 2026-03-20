@@ -1,0 +1,12 @@
+{
+  "customer_id": "YOUR_GOOGLE_SECOPS_CUSTOMER_ID",
+  "region": "us",
+  "credentials_file": "C:\\CHeaT\\secops-config\\service-account.json",
+  "log_type": "CHEAT_DEFENSE",
+  "server_role": "WebServer",
+  "server_name": "DMZ-WEB01",
+  "log_directory": "C:\\CHeaT\\secops-logs",
+  "check_interval": 30,
+  "batch_size": 100,
+  "install_path": "C:\\CHeaT"
+}
