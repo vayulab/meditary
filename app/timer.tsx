@@ -28,7 +28,9 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLanguage } from "@/contexts/language-context";
 import { useAppTheme } from "@/contexts/theme-context";
 import { useData } from "@/contexts/data-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getLocalDateString } from "@/lib/date-utils";
+import { STORAGE_KEYS } from "@/constants/data";
 
 const TIMER_PRESETS = [10, 15, 20, 30, 45, 60, 70, 80, 90];
 const INTERVAL_PRESETS = [0, 5, 10, 15, 20, 30]; // 0 = off
@@ -52,6 +54,13 @@ export default function TimerScreen() {
   const [duration, setDuration] = useState(10); // minutes
   const [intervalGong, setIntervalGong] = useState(0); // minutes, 0 = off
   const [gongSound, setGongSound] = useState("gong-1");
+
+  // Load persisted gong preference
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEYS.GONG_SOUND).then(saved => {
+      if (saved) setGongSound(saved);
+    });
+  }, []);
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -189,12 +198,12 @@ export default function TimerScreen() {
   const handleTimerComplete = async () => {
     setIsRunning(false);
     setIsPaused(false);
+    setShowPresets(true);
+    setTimeRemaining(duration * 60);
     lastGongTimeRef.current = 0;
-    
 
-    
     await playBellSound("end");
-    
+
     // Save meditation session
     const todayStr = getLocalDateString();
     await addSession({
@@ -203,10 +212,10 @@ export default function TimerScreen() {
       durationMinutes: duration,
       hasEntry: false,
     });
-    
+
     Alert.alert(
       language === "pt" ? "Meditação Completa 🧘" : "Meditation Complete 🧘",
-      language === "pt" 
+      language === "pt"
         ? "Parabéns! Sua sessão de meditação terminou."
         : "Congratulations! Your meditation session is complete.",
       [
@@ -217,10 +226,6 @@ export default function TimerScreen() {
         {
           text: language === "pt" ? "Fechar" : "Close",
           style: "cancel",
-          onPress: () => {
-            setShowPresets(true);
-            setTimeRemaining(duration * 60);
-          },
         },
       ]
     );
@@ -248,7 +253,9 @@ export default function TimerScreen() {
 
   const handleStop = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
+    setIsRunning(false);
+    setIsPaused(false);
+
     // Calculate elapsed time
     const elapsedSeconds = duration * 60 - timeRemaining;
     const elapsedMinutes = Math.floor(elapsedSeconds / 60);
@@ -261,13 +268,10 @@ export default function TimerScreen() {
           ? `Você meditou por ${elapsedMinutes} minutos. Deseja salvar e registrar?`
           : `You meditated for ${elapsedMinutes} minutes. Save and log entry?`,
         [
-          { 
-            text: language === "pt" ? "Não Salvar" : "Don't Save", 
+          {
+            text: language === "pt" ? "Não Salvar" : "Don't Save",
             style: "cancel",
             onPress: () => {
-              // Just reset timer
-              setIsRunning(false);
-              setIsPaused(false);
               setShowPresets(true);
               setTimeRemaining(duration * 60);
               lastGongTimeRef.current = 0;
@@ -276,17 +280,12 @@ export default function TimerScreen() {
           {
             text: language === "pt" ? "Apenas Salvar" : "Just Save",
             onPress: async () => {
-              // Save session with elapsed time
               await addSession({
                 date: getLocalDateString(),
                 timestamp: Date.now(),
                 durationMinutes: elapsedMinutes,
                 hasEntry: false,
               });
-              
-              // Reset timer
-              setIsRunning(false);
-              setIsPaused(false);
               setShowPresets(true);
               setTimeRemaining(duration * 60);
               lastGongTimeRef.current = 0;
@@ -295,22 +294,15 @@ export default function TimerScreen() {
           {
             text: language === "pt" ? "Salvar e Registrar" : "Save & Log",
             onPress: async () => {
-              // Save session with elapsed time
               await addSession({
                 date: getLocalDateString(),
                 timestamp: Date.now(),
                 durationMinutes: elapsedMinutes,
                 hasEntry: false,
               });
-              
-              // Reset timer
-              setIsRunning(false);
-              setIsPaused(false);
               setShowPresets(true);
               setTimeRemaining(duration * 60);
               lastGongTimeRef.current = 0;
-              
-              // Navigate to entry form
               router.push("/new-entry" as any);
             },
           },
@@ -324,13 +316,16 @@ export default function TimerScreen() {
           ? "Tem certeza que deseja parar a meditação?"
           : "Are you sure you want to stop the meditation?",
         [
-          { text: language === "pt" ? "Cancelar" : "Cancel", style: "cancel" },
+          { text: language === "pt" ? "Cancelar" : "Cancel", style: "cancel",
+            onPress: () => {
+              setIsRunning(true);
+              setIsPaused(false);
+            }
+          },
           {
             text: language === "pt" ? "Parar" : "Stop",
             style: "destructive",
             onPress: () => {
-              setIsRunning(false);
-              setIsPaused(false);
               setShowPresets(true);
               setTimeRemaining(duration * 60);
               lastGongTimeRef.current = 0;
@@ -529,6 +524,7 @@ export default function TimerScreen() {
                     onPress={async () => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setGongSound(sound.id);
+                      await AsyncStorage.setItem(STORAGE_KEYS.GONG_SOUND, sound.id);
                       // Test play the selected gong
                       try {
                         const testFile = sound.id === "gong-1" 

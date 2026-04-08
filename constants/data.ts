@@ -131,4 +131,5 @@ export const STORAGE_KEYS = {
   SETTINGS: "@meditary/settings",
   DEVICE_ID: "@meditary/deviceId",
   SESSIONS: "@meditary/sessions",
+  GONG_SOUND: "@meditary/gongSound",
 };

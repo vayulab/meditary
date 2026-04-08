@@ -62,7 +62,7 @@ export default function ProgressScreen() {
   const filteredEntries = useMemo(() => {
     const { today, weekStart, monthStart, yearStart } = dateRanges;
     let startDate: Date;
-    
+
     switch (timeRange) {
       case "week":
         startDate = weekStart;
@@ -81,9 +81,33 @@ export default function ProgressScreen() {
     });
   }, [entries, timeRange, dateRanges]);
 
+  // Sessions without journal entry (to avoid double-counting)
+  const filteredSessions = useMemo(() => {
+    const { today, weekStart, monthStart, yearStart } = dateRanges;
+    let startDate: Date;
+
+    switch (timeRange) {
+      case "week":
+        startDate = weekStart;
+        break;
+      case "month":
+        startDate = monthStart;
+        break;
+      case "year":
+        startDate = yearStart;
+        break;
+    }
+
+    return sessions.filter(session => {
+      if (session.hasEntry) return false;
+      const sessionDate = parseLocalDate(session.date);
+      return sessionDate >= startDate && sessionDate <= today;
+    });
+  }, [sessions, timeRange, dateRanges]);
+
   // Calculate statistics
   const stats = useMemo(() => {
-    const totalEntries = filteredEntries.length;
+    const totalEntries = filteredEntries.length + filteredSessions.length;
     const totalMinutes = getTotalMinutesMeditated();
     const avgConcentration = getAverageConcentration();
 
@@ -109,73 +133,87 @@ export default function ProgressScreen() {
 
   // Generate chart data
   const chartData = useMemo(() => {
-    const { today, weekStart, monthStart, yearStart } = dateRanges;
+    const { today } = dateRanges;
     const data: { label: string; value: number; date: string }[] = [];
 
     if (timeRange === "week") {
-      // Daily data for week
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
         const dateStr = getLocalDateString(date);
-        const dayEntries = filteredEntries.filter(e => e.date === dateStr);
-        
-        const dayNames = language === "pt" 
+        const count =
+          filteredEntries.filter(e => e.date === dateStr).length +
+          filteredSessions.filter(s => s.date === dateStr).length;
+
+        const dayNames = language === "pt"
           ? ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
           : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        
-        data.push({
-          label: dayNames[date.getDay()],
-          value: dayEntries.length,
-          date: dateStr,
-        });
+
+        data.push({ label: dayNames[date.getDay()], value: count, date: dateStr });
       }
     } else if (timeRange === "month") {
-      // Weekly data for month (4 weeks)
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
       for (let week = 3; week >= 0; week--) {
         const weekEnd = new Date(today);
         weekEnd.setDate(today.getDate() - week * 7);
         const weekStart = new Date(weekEnd);
         weekStart.setDate(weekEnd.getDate() - 6);
-        
-        const weekEntries = filteredEntries.filter(e => {
-          const entryDate = parseLocalDate(e.date);
-          return entryDate >= weekStart && entryDate <= weekEnd;
-        });
-        
+
+        // Clamp to current month boundaries
+        const clampedStart = weekStart < monthStart ? monthStart : weekStart;
+        const clampedEnd = weekEnd > monthEnd ? monthEnd : weekEnd;
+
+        if (clampedStart > clampedEnd) continue;
+
+        const count =
+          filteredEntries.filter(e => {
+            const d = parseLocalDate(e.date);
+            return d >= clampedStart && d <= clampedEnd;
+          }).length +
+          filteredSessions.filter(s => {
+            const d = parseLocalDate(s.date);
+            return d >= clampedStart && d <= clampedEnd;
+          }).length;
+
         data.push({
           label: language === "pt" ? `Sem ${4 - week}` : `Wk ${4 - week}`,
-          value: weekEntries.length,
-          date: getLocalDateString(weekStart),
+          value: count,
+          date: getLocalDateString(clampedStart),
         });
       }
     } else {
-      // Monthly data for year
       for (let i = 11; i >= 0; i--) {
         const monthDate = new Date(today);
         monthDate.setMonth(today.getMonth() - i);
         const month = monthDate.getMonth();
         const year = monthDate.getFullYear();
-        
-        const monthEntries = filteredEntries.filter(e => {
-          const entryDate = parseLocalDate(e.date);
-          return entryDate.getMonth() === month && entryDate.getFullYear() === year;
-        });
-        
+
+        const count =
+          filteredEntries.filter(e => {
+            const d = parseLocalDate(e.date);
+            return d.getMonth() === month && d.getFullYear() === year;
+          }).length +
+          filteredSessions.filter(s => {
+            const d = parseLocalDate(s.date);
+            return d.getMonth() === month && d.getFullYear() === year;
+          }).length;
+
         const monthNames = language === "pt"
           ? ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
           : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        
+
         data.push({
           label: monthNames[month],
-          value: monthEntries.length,
+          value: count,
           date: `${year}-${(month + 1).toString().padStart(2, "0")}`,
         });
       }
     }
 
     return data;
-  }, [filteredEntries, timeRange, dateRanges, language]);
+  }, [filteredEntries, filteredSessions, timeRange, dateRanges, language]);
 
   // Calculate concentration trend
   const concentrationTrend = useMemo(() => {
