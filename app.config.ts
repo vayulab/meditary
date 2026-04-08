@@ -36,6 +36,7 @@ const config: ExpoConfig = {
     bundleIdentifier: env.iosBundleId,
     infoPlist: {
       UIBackgroundModes: ["audio"],
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
@@ -85,6 +86,11 @@ const config: ExpoConfig = {
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    eas: {
+      projectId: "dab0660a-4e8f-4820-bcd8-6963813ac1e0"
+    }
   },
 };
 

@@ -71,7 +71,7 @@ Meditary was built with a clear vision:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/diegom4riano/meditary.git
+   git clone https://github.com/vayulab/meditary.git
    cd meditary
    ```
 
@@ -83,8 +83,6 @@ Meditary was built with a clear vision:
 3. **Start the development server**
    ```bash
    pnpm start
-
-   pnpm exec expo start
    ```
 
 4. **Run on your device**
@@ -108,6 +106,8 @@ All 34 unit tests cover:
 - Question customization
 - Timer functionality
 - Calendar aggregation
+
+---
 
 ---
 
