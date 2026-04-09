@@ -132,4 +132,5 @@ export const STORAGE_KEYS = {
   DEVICE_ID: "@meditary/deviceId",
   SESSIONS: "@meditary/sessions",
   GONG_SOUND: "@meditary/gongSound",
+  CUSTOM_DURATION: "@meditary/customDuration",
 };

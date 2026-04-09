@@ -3,12 +3,13 @@ import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { useKeepAwake } from "expo-keep-awake";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  View, 
-  Pressable, 
-  StyleSheet, 
+import {
+  View,
+  Pressable,
+  StyleSheet,
   Alert,
   ScrollView,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -32,7 +33,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getLocalDateString } from "@/lib/date-utils";
 import { STORAGE_KEYS } from "@/constants/data";
 
-const TIMER_PRESETS = [10, 15, 20, 30, 45, 60, 70, 80, 90];
+const TIMER_PRESETS = [10, 20, 30, 40, 50, 60];
 const INTERVAL_PRESETS = [0, 5, 10, 15, 20, 30]; // 0 = off
 const GONG_SOUNDS = [
   { id: "gong-1", labelEn: "Notification Bell", labelPt: "Sino de Notificação" },
@@ -55,12 +56,33 @@ export default function TimerScreen() {
   const [intervalGong, setIntervalGong] = useState(0); // minutes, 0 = off
   const [gongSound, setGongSound] = useState("gong-1");
 
-  // Load persisted gong preference
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const [savedCustomDuration, setSavedCustomDuration] = useState<number | null>(null);
+
+  const customInputValue = parseInt(customInput, 10);
+  const customInputError =
+    customInput.length > 0 && (isNaN(customInputValue) || customInputValue < 1 || customInputValue > 120);
+  const customInputValid = customInput.length > 0 && !customInputError;
+
+  // Load persisted preferences
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEYS.GONG_SOUND).then(saved => {
       if (saved) setGongSound(saved);
     });
+    AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_DURATION).then(saved => {
+      if (saved) setSavedCustomDuration(parseInt(saved, 10));
+    });
   }, []);
+
+  const handleConfirmCustomDuration = () => {
+    const mins = parseInt(customInput, 10);
+    setSavedCustomDuration(mins);
+    AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_DURATION, String(mins));
+    handlePresetSelect(mins);
+    setShowCustomInput(false);
+    setCustomInput("");
+  };
   const [timeRemaining, setTimeRemaining] = useState(duration * 60); // seconds
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -442,30 +464,109 @@ export default function TimerScreen() {
               <ThemedText style={[styles.presetsLabel, { color: colors.textSecondary }]}>
                 {language === "pt" ? "Duração (minutos)" : "Duration (minutes)"}
               </ThemedText>
-              <View style={styles.presets}>
-                {TIMER_PRESETS.map((preset) => (
+              {showCustomInput ? (
+                <View style={styles.customInputRow}>
                   <Pressable
-                    key={preset}
+                    onPress={() => { setShowCustomInput(false); setCustomInput(""); }}
+                    style={styles.customCancelButton}
+                  >
+                    <IconSymbol name="xmark" size={16} color={colors.textSecondary} />
+                  </Pressable>
+                  <TextInput
                     style={[
-                      styles.presetButton,
+                      styles.customInput,
                       {
-                        backgroundColor: duration === preset ? themeColors.tint : colors.surface,
-                        borderColor: duration === preset ? themeColors.tint : colors.border,
+                        color: colors.text,
+                        backgroundColor: colors.surface,
+                        borderColor: customInputError ? colors.error : themeColors.tint,
                       },
                     ]}
-                    onPress={() => handlePresetSelect(preset)}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.presetText,
-                        { color: duration === preset ? "#FFFFFF" : colors.text },
-                      ]}
-                    >
-                      {preset}
+                    value={customInput}
+                    onChangeText={setCustomInput}
+                    keyboardType="number-pad"
+                    placeholder="1–120"
+                    placeholderTextColor={colors.textSecondary}
+                    maxLength={3}
+                    autoFocus
+                  />
+                  <ThemedText style={[styles.customInputLabel, { color: colors.textSecondary }]}>
+                    min
+                  </ThemedText>
+                  {customInputError && (
+                    <ThemedText style={[styles.customInputError, { color: colors.error }]}>
+                      {customInputValue < 1 || isNaN(customInputValue)
+                        ? (language === "pt" ? "Mín. 1 min" : "Min. 1 min")
+                        : (language === "pt" ? "Máx. 120 min" : "Max. 120 min")}
                     </ThemedText>
+                  )}
+                  <Pressable
+                    onPress={handleConfirmCustomDuration}
+                    disabled={!customInputValid}
+                    style={[
+                      styles.customConfirmButton,
+                      { backgroundColor: customInputValid ? themeColors.tint : colors.border },
+                    ]}
+                  >
+                    <IconSymbol name="checkmark" size={16} color="#FFFFFF" />
                   </Pressable>
-                ))}
-              </View>
+                </View>
+              ) : (
+                <View style={styles.presets}>
+                  {TIMER_PRESETS.map((preset) => (
+                    <Pressable
+                      key={preset}
+                      style={[
+                        styles.presetButton,
+                        {
+                          backgroundColor: duration === preset && savedCustomDuration !== duration ? themeColors.tint : colors.surface,
+                          borderColor: duration === preset && savedCustomDuration !== duration ? themeColors.tint : colors.border,
+                        },
+                      ]}
+                      onPress={() => { handlePresetSelect(preset); }}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.presetText,
+                          { color: duration === preset && savedCustomDuration !== duration ? "#FFFFFF" : colors.text },
+                        ]}
+                      >
+                        {preset}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                  {savedCustomDuration !== null && !TIMER_PRESETS.includes(savedCustomDuration) && (
+                    <Pressable
+                      style={[
+                        styles.presetButton,
+                        styles.customChip,
+                        {
+                          backgroundColor: duration === savedCustomDuration ? themeColors.tint : colors.surface,
+                          borderColor: duration === savedCustomDuration ? themeColors.tint : themeColors.tintSecondary,
+                        },
+                      ]}
+                      onPress={() => handlePresetSelect(savedCustomDuration)}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.presetText,
+                          { color: duration === savedCustomDuration ? "#FFFFFF" : themeColors.tintSecondary, fontSize: 13 },
+                        ]}
+                      >
+                        {savedCustomDuration}✎
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                  <Pressable
+                    style={[styles.presetButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                    onPress={() => {
+                      setCustomInput(savedCustomDuration ? String(savedCustomDuration) : "");
+                      setShowCustomInput(true);
+                    }}
+                  >
+                    <IconSymbol name="plus" size={18} color={themeColors.tint} />
+                  </Pressable>
+                </View>
+              )}
             </View>
 
             {/* Interval Gong Presets */}
@@ -800,5 +901,49 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
+  },
+  customInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    flexWrap: "wrap",
+  },
+  customCancelButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  customInput: {
+    width: 72,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    textAlign: "center",
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  customInputLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  customInputError: {
+    fontSize: 12,
+    fontWeight: "500",
+    position: "absolute",
+    bottom: -18,
+    alignSelf: "center",
+  },
+  customConfirmButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  customChip: {
+    borderStyle: "dashed",
   },
 });

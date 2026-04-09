@@ -5,7 +5,7 @@
 **Meditary was developed by a meditation practitioner who felt the need for an app like this. No login screens, no in-app purchases, no tracking — just the features that matter to support a good meditation practice.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![React Native](https://img.shields.io/badge/React%20Native-0.79-blue.svg)](https://reactnative.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81-blue.svg)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020.svg)](https://expo.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 
@@ -31,7 +31,7 @@ Meditary was built with a clear vision:
 - **Entry History**: Review past meditations with detailed notes and responses
 
 ### ⏱️ Meditation Timer
-- **Flexible Durations**: 10, 15, 20, 30, 45, 60, 70, 80, or 90 minutes
+- **Flexible Durations**: 10, 20, 30, 40, 50, or 60 minutes (plus custom duration 1–120 min)
 - **Interval Gongs**: Optional chimes at 5, 10, 15, 20, or 30-minute intervals
 - **Authentic Sounds**: Real meditation bell recordings (notification bell, Tibetan bowl, Zen bowl)
 - **Smart Save**: Automatically prompts to save sessions over 10 minutes, even if stopped early
@@ -100,7 +100,7 @@ Run the test suite:
 pnpm test
 ```
 
-All 34 unit tests cover:
+All 59 unit tests cover:
 - Data persistence and retrieval
 - Streak calculation logic
 - Question customization
@@ -161,7 +161,7 @@ Meditary supports:
 - 🇺🇸 **English**
 - 🇧🇷 **Portuguese (Brazil)**
 
-Language is automatically detected from device settings.
+Language is selected manually in the Settings screen (English or Português).
 
 ---
 
