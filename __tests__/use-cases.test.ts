@@ -1,6 +1,5 @@
 /**
  * Meditary - Comprehensive Use Case Tests
- * Tests all 28 use cases documented in USE_CASES.md
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
@@ -498,8 +497,7 @@ describe("UC001-UC028: Meditary Use Cases", () => {
       // Calculate streak
       const sortedDates = [...new Set(parsed.map(e => e.date))].sort().reverse();
       let streak = 0;
-      const todayStr = today.toISOString().split("T")[0];
-      
+
       for (let i = 0; i < sortedDates.length; i++) {
         const expectedDate = new Date(today);
         expectedDate.setDate(today.getDate() - i);

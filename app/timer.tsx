@@ -116,6 +116,8 @@ export default function TimerScreen() {
 
   // Load audio sounds
   useEffect(() => {
+    let cancelled = false;
+
     const loadSounds = async () => {
       try {
         await Audio.setAudioModeAsync({
@@ -123,29 +125,35 @@ export default function TimerScreen() {
           staysActiveInBackground: true,
         });
 
-        // Load start bell sound
         const startBellFile = require("@/assets/sounds/bell-start.mp3");
-        
-        // Load gong sounds based on selected type
-        const gongSoundFile = gongSound === "gong-1" 
+
+        const gongSoundFile = gongSound === "gong-1"
           ? require("@/assets/sounds/gong-1.mp3")
           : gongSound === "gong-2"
           ? require("@/assets/sounds/gong-2.mp3")
           : require("@/assets/sounds/gong-3.mp3");
-        
-        // Load end bell sound
+
         const endBellFile = require("@/assets/sounds/bell-end.mp3");
-        
+
         const { sound: startSound } = await Audio.Sound.createAsync(startBellFile);
-        await startSound.setVolumeAsync(1.0); // Maximum volume
-        startSoundRef.current = startSound;
-
         const { sound: intervalSound } = await Audio.Sound.createAsync(gongSoundFile);
-        await intervalSound.setVolumeAsync(1.0); // Maximum volume
-        intervalSoundRef.current = intervalSound;
-
         const { sound: endSound } = await Audio.Sound.createAsync(endBellFile);
-        await endSound.setVolumeAsync(1.0); // Maximum volume
+
+        // If gongSound changed again while we were loading, discard these sounds
+        // to avoid overwriting refs with a stale gong type.
+        if (cancelled) {
+          startSound.unloadAsync();
+          intervalSound.unloadAsync();
+          endSound.unloadAsync();
+          return;
+        }
+
+        await startSound.setVolumeAsync(1.0);
+        await intervalSound.setVolumeAsync(1.0);
+        await endSound.setVolumeAsync(1.0);
+
+        startSoundRef.current = startSound;
+        intervalSoundRef.current = intervalSound;
         endSoundRef.current = endSound;
       } catch (error) {
         console.error("Error loading sounds:", error);
@@ -155,10 +163,10 @@ export default function TimerScreen() {
     loadSounds();
 
     return () => {
+      cancelled = true;
       startSoundRef.current?.unloadAsync();
       intervalSoundRef.current?.unloadAsync();
       endSoundRef.current?.unloadAsync();
-
     };
   }, [gongSound]);
 

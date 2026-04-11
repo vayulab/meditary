@@ -100,14 +100,12 @@ Run the test suite:
 pnpm test
 ```
 
-All 59 unit tests cover:
+All unit tests cover:
 - Data persistence and retrieval
 - Streak calculation logic
 - Question customization
 - Timer functionality
 - Calendar aggregation
-
----
 
 ---
 

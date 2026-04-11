@@ -11,7 +11,7 @@ import {
   DEFAULT_QUESTIONS, 
   STORAGE_KEYS 
 } from "@/constants/data";
-import { getLocalDateString } from "@/lib/date-utils";
+import { getLocalDateString, parseLocalDate } from "@/lib/date-utils";
 
 interface DataContextType {
   entries: MeditationEntry[];
@@ -118,8 +118,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     const newEntries = [...entries, newEntry].sort((a, b) => b.timestamp - a.timestamp);
     await saveEntries(newEntries);
+
+    // Mark the most recent timer session on the same date as having a diary entry,
+    // so Progress screen doesn't double-count it alongside this entry.
+    const matchingSession = sessions
+      .filter(s => s.date === entry.date && !s.hasEntry)
+      .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+    if (matchingSession) {
+      const updatedSessions = sessions.map(s =>
+        s.id === matchingSession.id ? { ...s, hasEntry: true } : s
+      );
+      setSessions(updatedSessions);
+      await AsyncStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(updatedSessions));
+    }
+
     return newEntry;
-  }, [entries, deviceId]);
+  }, [entries, sessions, deviceId]);
 
   const updateEntry = useCallback(async (id: string, updates: Partial<MeditationEntry>) => {
     const newEntries = entries.map(entry => 
@@ -139,7 +154,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const getEntriesForMonth = useCallback((year: number, month: number): MeditationEntry[] => {
     return entries.filter(entry => {
-      const entryDate = new Date(entry.date);
+      const entryDate = parseLocalDate(entry.date);
       return entryDate.getFullYear() === year && entryDate.getMonth() === month;
     });
   }, [entries]);
@@ -235,7 +250,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const getSessionsForMonth = useCallback((year: number, month: number): MeditationSession[] => {
     return sessions.filter(session => {
-      const d = new Date(session.date);
+      const d = parseLocalDate(session.date);
       return d.getFullYear() === year && d.getMonth() === month;
     });
   }, [sessions]);
@@ -264,7 +279,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0];
+      const dateStr = getLocalDateString(date);
       
       const dayEntries = entries.filter(e => e.date === dateStr);
       const daySessions = sessions.filter(s => s.date === dateStr);

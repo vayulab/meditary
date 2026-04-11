@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { translations, getTranslation } from "../constants/i18n";
-import { DEFAULT_QUESTIONS, MeditationEntry, Question } from "../constants/data";
+import { DEFAULT_QUESTIONS, MeditationEntry } from "../constants/data";
 import { 
   THEME_PALETTES, 
   THEME_LABELS, 
@@ -138,21 +138,23 @@ describe("Meditation Entry Structure", () => {
     expect(mockEntry.answers[0].value).toBe(4);
   });
 
-  it("should support different answer types", () => {
+  it("should support different answer types (number and string)", () => {
+    // Answer.value is string | number — yesno questions store "yes" or "no" as strings
     const answers = [
       { questionId: "concentration", value: 5 },
       { questionId: "physicalPain", value: "Some back pain" },
-      { questionId: "sleepy", value: true },
+      { questionId: "sleepy", value: "yes" },
     ];
 
     expect(typeof answers[0].value).toBe("number");
     expect(typeof answers[1].value).toBe("string");
-    expect(typeof answers[2].value).toBe("boolean");
+    expect(typeof answers[2].value).toBe("string");
   });
 });
 
 describe("Timer Presets", () => {
-  const TIMER_PRESETS = [5, 10, 15, 20, 30, 45, 60];
+  // Matches TIMER_PRESETS constant in app/timer.tsx
+  const TIMER_PRESETS = [10, 20, 30, 40, 50, 60];
 
   it("should have valid timer presets", () => {
     expect(TIMER_PRESETS.length).toBeGreaterThan(0);
@@ -171,6 +173,10 @@ describe("Timer Presets", () => {
     expect(TIMER_PRESETS).toContain(10);
     expect(TIMER_PRESETS).toContain(20);
     expect(TIMER_PRESETS).toContain(30);
+  });
+
+  it("should have exactly 6 presets (10, 20, 30, 40, 50, 60)", () => {
+    expect(TIMER_PRESETS).toEqual([10, 20, 30, 40, 50, 60]);
   });
 });
 
@@ -216,7 +222,7 @@ describe("Date and Time Utilities", () => {
     expect(calculateStreak([])).toBe(0);
     
     // Test with today only
-    const today = new Date().toISOString().split("T")[0];
-    expect(calculateStreak([today])).toBe(1);
+    const todayStr = new Date().toISOString().split("T")[0];
+    expect(calculateStreak([todayStr])).toBe(1);
   });
 });
