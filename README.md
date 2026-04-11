@@ -109,6 +109,14 @@ All unit tests cover:
 
 ---
 
+## 🧘‍♂️ Publishing using Expo Application Services
+
+```bash
+eas build --platform ios --auto-submit
+```
+
+---
+
 ## 📱 Tech Stack
 
 ### Mobile App
