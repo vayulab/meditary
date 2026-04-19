@@ -53,22 +53,30 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const initializeData = async () => {
     try {
-      // Get or generate device ID
+      // Resolve and persist a stable device identifier.
+      //
+      // Priority: iOS Vendor ID → Android ID → random UUID (fallback).
+      // The ID is generated once and reused across sessions.
+      //
+      // NOTE: currently stored locally and never transmitted.
+      // Intended for a future "device migration" feature: users who switch
+      // phones will be able to export their data and re-import it on the new
+      // device, using this ID to confirm data ownership without requiring
+      // an account or server-side authentication.
       let storedDeviceId = await AsyncStorage.getItem(STORAGE_KEYS.DEVICE_ID);
-      
+
       if (!storedDeviceId) {
-        // Try to get native device ID first
         if (Platform.OS === "ios") {
           storedDeviceId = await Application.getIosIdForVendorAsync() || "";
         } else if (Platform.OS === "android") {
           storedDeviceId = Application.getAndroidId() || "";
         }
-        
-        // If no native ID, generate a UUID
+
+        // Fallback: generate a UUID when native ID is unavailable
         if (!storedDeviceId) {
           storedDeviceId = Crypto.randomUUID();
         }
-        
+
         await AsyncStorage.setItem(STORAGE_KEYS.DEVICE_ID, storedDeviceId as string);
       }
       setDeviceId(storedDeviceId || "");

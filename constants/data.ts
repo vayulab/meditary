@@ -20,6 +20,16 @@ export interface MeditationEntry {
   id: string;
   date: string; // ISO date string YYYY-MM-DD
   timestamp: number;
+  /**
+   * Identifier of the device that created this entry.
+   *
+   * CURRENT STATUS: stored locally only, never transmitted.
+   *
+   * FUTURE USE: data migration — when a user switches phones they will be able
+   * to identify their own records and restore them to the new device without
+   * requiring a user account. All records originating from the same device
+   * share this ID, making selective restore possible.
+   */
   deviceId: string;
   answers: Answer[];
   notes?: string;
@@ -30,6 +40,7 @@ export interface MeditationSession {
   id: string;
   date: string; // ISO date string YYYY-MM-DD
   timestamp: number;
+  /** @see MeditationEntry.deviceId */
   deviceId: string;
   durationMinutes: number;
   hasEntry: boolean; // Whether user also logged a diary entry
@@ -37,6 +48,7 @@ export interface MeditationSession {
 
 export interface AppSettings {
   language: "en" | "pt";
+  /** @see MeditationEntry.deviceId */
   deviceId: string;
 }
 

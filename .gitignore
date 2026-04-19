@@ -56,6 +56,9 @@ logs
 # OS
 Thumbs.db
 
+# Local notes (not for version control)
+post.md
+
 # Build files
 *.tgz
 *.tar.gz
